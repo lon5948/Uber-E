@@ -2,7 +2,6 @@
 use Flask to implement a Food Delivery Platform
 
 # Folder Structure
-# Uber-E
 * [db/](.\Uber-E\db)
   * [db_item.sql](.\Uber-E\db\db_item.sql)
   * [db_shop.sql](.\Uber-E\db\db_shop.sql)
