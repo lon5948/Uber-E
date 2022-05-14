@@ -33,7 +33,7 @@ def hello():
     uid = session.get('uid', None)
     if uid is not None:
         session.pop('uid')
-    session['uid'] = 1
+    session['uid'] = 2
     return render_template('index.html')
 
 
@@ -42,15 +42,18 @@ def main():
     uid = session.get('uid')
     userShop = None
     userShopItems = list()
+    shopList = session.get('shopList',list)
+    print(type(shopList))
     if uid is not None:
-        cursor.execute("select account,name,phone,latitude,longitude from user where uid = %s", (uid, ))
+        cursor.execute("select account,name,phone,longitude,latitude,wallet from user where uid = %s", (uid, ))
         info = cursor.fetchone()
         userInfo = {
             'account': info[0],
             'name': info[1],
             'phone': info[2],
-            'latitude': info[3],
-            'longitude': info[4]
+            'longitude': info[3],
+            'latitude': info[4],
+            'wallet': info[5]
         }
         cursor.execute("select shopname, shoptype, latitude, longitude, sid from shop where uid = %s", (uid, ))
         res = cursor.fetchall()
@@ -65,9 +68,105 @@ def main():
             sid = tmp[4]
             cursor.execute("select name, price, quantity, image, iid from item where sid = %s", (sid, ))
             userShopItems = cursor.fetchall()
-    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, userShopItems=userShopItems)
+    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, userShopItems=userShopItems,shopList=shopList)
 
+# home
+@app.route('/editLocation', methods=['POST'])
+def editLocation():
+    uid = session.get('uid')
+    longitude = request.form.get('longitude')
+    latitude = request.form.get('latitude')
+    cursor.execute("""update user SET longitude = %s, latitude = %s WHERE uid = %s""", (longitude, latitude, uid))
+    db.commit()
+    return redirect(url_for('main'))
 
+@app.route('/search', methods=['POST'])
+def search():
+    uid = session.get('uid')
+    cursor.execute("""select longitude,latitude from user where uid=%s """, (uid,))
+    userLocation = cursor.fetchone()
+    longitude = userLocation[0]
+    latitude = userLocation[1]
+    shopList = list()
+
+    keyword = request.form.get('keyword')
+    cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where shopname like %s """, (longitude,latitude,'%'+keyword+'%',))
+    shopList = cursor.fetchall()
+    
+    distance = request.form.get('distance')
+    if distance == 'near':
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))<=5000 """, (longitude,latitude,))
+    elif distance == 'medium':
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))>5000 and ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))<=15000 """, (longitude,latitude,longitude,latitude,))
+    elif distance == 'far':
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))>15000 """, (longitude,latitude,))
+    if shopList == None:
+        shopList = cursor.fetchall()
+    else :
+        checkList = cursor.fetchall()
+        if len(checkList) != 0:
+            for shop in shopList:
+                if shop not in checkList:
+                    shopList.remove(shop)
+    
+    minPrice = request.form.get('minPrice')
+    if minPrice == None and maxPrice != None:
+        minPrice = 0
+    maxPrice = request.form.get('maxPrice')
+    if maxPrice == None and minPrice != None:
+        maxPrice = 1e9
+    cursor.execute("""select distinct sid from item where price>=%s and price<=%s """, (minPrice,maxPrice,))
+    sids = cursor.fetchall()
+    for sid in sids:
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where sid==%s""", (longitude,latitude,sid,))
+        checkList.append(cursor.fetchone())
+    if shopList == None:
+        shopList = checkList
+    else:
+        if len(checkList) != 0:
+            for shop in shopList:
+                if shop not in checkList:
+                    shopList.remove(shop)
+    
+    meal = request.form.get('meal')
+    cursor.execute("""select distinct sid from item where name like %s """, ('%'+meal+'%',))
+    sids = cursor.fetchall()
+    for sid in sids:
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where sid==%s""", (longitude,latitude,sid,))
+        checkList.append(cursor.fetchone())
+    if shopList == None:
+        shopList = checkList
+    else:
+        if len(checkList) != 0:
+            for shop in shopList:
+                if shop not in checkList:
+                    shopList.remove(shop)
+    
+    category = request.form.get('category')
+    cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where shoptype=%s """, (longitude,latitude,'%'+category+'%',))
+    if shopList == None:
+        shopList = cursor.fetchall()
+    else:
+        checkList = cursor.fetchall()
+        if len(checkList) != 0:
+            for shop in shopList:
+                if shop not in checkList:
+                    shopList.remove(shop)
+
+    for index,shop in enumerate(shopList):
+        shop = list(shop)
+        if float(shop[2]) < 5000:
+            shop[2] = 'near'
+        elif float(shop[2]) > 15000:
+            shop[2] = 'far'
+        else:
+            shop[2] = 'medium'
+        shop = tuple(shop)
+        shopList[index] = shop
+    session['shopList'] = shopList
+    return redirect(url_for('main'))
+
+# shop
 @app.route('/validateShopInfo', methods=['POST'])
 def validateShopInfo():
     def check_num(x, s):
