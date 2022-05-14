@@ -1,5 +1,5 @@
 # Uber-E
-use Flask to implement a Food Delivery Platform
+Use Flask to implement a Food Delivery Platform
 
 # Folder Structure
 * [db/](https://github.com/lon5948/Uber-E/edit/main/db)
