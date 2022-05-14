@@ -2,17 +2,17 @@
 use Flask to implement a Food Delivery Platform
 
 # Folder Structure
-* [db/](.\Uber-E\db)
-  * [db_item.sql](.\Uber-E\db\db_item.sql)
-  * [db_shop.sql](.\Uber-E\db\db_shop.sql)
-  * [db_user.sql](.\Uber-E\db\db_user.sql)
-* [static/](.\Uber-E\static)
-* [templates/](.\Uber-E\templates)
-  * [index.html](.\Uber-E\templates\index.html)
-  * [nav.html](.\Uber-E\templates\nav.html)
-  * [sign-up.html](.\Uber-E\templates\sign-up.html)
-* [app.py](.\Uber-E\app.py)
-* [README.md](.\Uber-E\README.md)
+* [db/](https://github.com/lon5948/Uber-E/edit/main/db)
+  * [db_item.sql](https://github.com/lon5948/Uber-E/edit/main/db/db_item.sql)
+  * [db_shop.sql](https://github.com/lon5948/Uber-E/edit/main/db/db_shop.sql)
+  * [db_user.sql](https://github.com/lon5948/Uber-E/edit/main/db/db_user.sql)
+* [static/](https://github.com/lon5948/Uber-E/edit/main/static)
+* [templates/](https://github.com/lon5948/Uber-E/edit/main/templates)
+  * [index.html](https://github.com/lon5948/Uber-E/edit/main/templates/index.html)
+  * [nav.html](https://github.com/lon5948/Uber-E/edit/main/templates/nav.html)
+  * [sign-up.html](https://github.com/lon5948/Uber-E/edit/main/templates/sign-up.html)
+* [app.py](https://github.com/lon5948/Uber-E/edit/main/app.py)
+* [README.md](https://github.com/lon5948/Uber-E/edit/main/README.md)
     
 # ER-model
 ![image](https://github.com/lon5948/Uber-E/blob/main/Model/ER%20model.png)
