@@ -1,7 +1,7 @@
 # Uber-E
 #### Use Flask to implement a Food Delivery Platform
 
-## Folder Structure
+### Folder Structure
 * [db/](https://github.com/lon5948/Uber-E/edit/main/db)                              
   * [db_item.sql](https://github.com/lon5948/Uber-E/edit/main/db/db_item.sql)           
   * [db_shop.sql](https://github.com/lon5948/Uber-E/edit/main/db/db_shop.sql)           
