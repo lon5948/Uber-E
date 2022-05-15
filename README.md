@@ -10,6 +10,7 @@ Use Flask to implement a Food Delivery Platform on localhost
     $ pip install flask
     
 in order to encrypt password by hash function
+    
     $ pip install flask_bcrypt
     
 ## Folder Structure
