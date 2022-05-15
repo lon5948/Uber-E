@@ -4,6 +4,9 @@ Use Flask to implement a Food Delivery Platform on localhost
 ## Version
     >  python 3.7
     >  MySQL  8.0
+
+## Installation
+    $ pip install flask
     
 ## Folder Structure
 * [db/](https://github.com/lon5948/Uber-E/edit/main/db)                              
@@ -17,9 +20,6 @@ Use Flask to implement a Food Delivery Platform on localhost
   * [sign-up.html](https://github.com/lon5948/Uber-E/edit/main/templates/sign-up.html) 
 * [app.py](https://github.com/lon5948/Uber-E/edit/main/app.py)                          
 * [README.md](https://github.com/lon5948/Uber-E/edit/main/README.md) 
-
-## Installation
-    $ pip install flask
 
 ## Relational-model
 ![image](https://github.com/lon5948/Uber-E/blob/main/Model/Relational%20model.png)
