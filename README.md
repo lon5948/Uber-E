@@ -14,9 +14,5 @@
 * [app.py](https://github.com/lon5948/Uber-E/edit/main/app.py)                          
 * [README.md](https://github.com/lon5948/Uber-E/edit/main/README.md) 
 
-
-## ER-model
-![image](https://github.com/lon5948/Uber-E/blob/main/Model/ER%20model.png)
-
 ## Relational-model
 ![image](https://github.com/lon5948/Uber-E/blob/main/Model/Relational%20model.png)
