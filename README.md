@@ -7,6 +7,8 @@ Use Flask to implement a Food Delivery Platform on localhost
 
 ## Installation
     $ pip install flask
+    $ pip install flask_script
+    $ pip install flask_bcrypt
     
 ## Folder Structure
 * [db/](https://github.com/lon5948/Uber-E/edit/main/db)                              
