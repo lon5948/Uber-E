@@ -1,5 +1,4 @@
 import os
-from flask_script import Manager, Command, prompt_bool, Shell
 from flask_bcrypt import Bcrypt
 from flask import Flask, render_template, session, request, jsonify, flash, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -86,15 +85,14 @@ def register():
         if error is None:
             try:
                 cursor.execute(
-                    "INSERT INTO user (uid,name, password,account,phone,latitude,longitude) VALUES (%s,%s,%s,%s,%s,%s,%s)",(str(maxuid+1),name, bcrypt.generate_password_hash(password),Account,phonenumber,latitude,longitude),)
+                    "INSERT INTO user (uid,name, password,account,phone,latitude,longitude,wallet) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",(str(maxuid+1),name, bcrypt.generate_password_hash(password),Account,phonenumber,latitude,longitude,0),)
                 db.commit()
             except mysql.connector.IntegrityError:
                 error = f"Account {Account} is already registered"
             else:
-                flash('Register success!')
+                flash('Register success!',category='success')
                 return redirect(url_for('login'))
-        print(error)
-        flash(error)
+        flash(error,category='danger')
     return render_template('sign-up.html')
 
 @app.route('/login', methods=('GET', 'POST'))
@@ -106,16 +104,14 @@ def login():
         cursor.execute('SELECT * FROM user WHERE account = %s', (Account,))
         accountdata = cursor.fetchone()
         if accountdata is None:
-            error = 'Login failed! Account not registered!'
+            error = 'Account not registered!'
         elif bcrypt.check_password_hash(accountdata[2], password)==False:
-            error = 'Login failed! Incorrect password!'
+            error = 'Incorrect password!'
         if error is None:
             session.clear()
             session['uid'] = accountdata[0]
             return redirect(url_for('main'))
-    
-        flash(error)
-        print(error)
+        flash(error,category='danger')
     return render_template('index.html')
 
 # main
@@ -129,7 +125,12 @@ def main():
         session.pop('shopList')
     else:
         shopList = list()
-    #itemList = session.get('itemList',list)
+    if session.get('itemList') is not None:
+        itemList = session.get('itemList')
+        session.pop('itemList')
+    else:
+        itemList = list()
+   
     if uid is not None:
         cursor.execute("select account,name,phone,longitude,latitude,wallet from user where uid = %s", (uid, ))
         info = cursor.fetchone()
@@ -154,7 +155,7 @@ def main():
             sid = tmp[4]
             cursor.execute("select name, price, quantity, image, iid from item where sid = %s", (sid, ))
             userShopItems = cursor.fetchall()
-    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, shopList=shopList)
+    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, shopList=shopList, userShopItems=userShopItems, itemList=itemList)
 
 # home
 @app.route('/editLocation', methods=['POST'])
@@ -162,8 +163,27 @@ def editLocation():
     uid = session.get('uid')
     longitude = request.form.get('longitude')
     latitude = request.form.get('latitude')
-    cursor.execute("""update user SET longitude = %s, latitude = %s WHERE uid = %s""", (longitude, latitude, uid))
-    db.commit()
+    if float(longitude)>180 or float(longitude)<-180 or float(latitude)>90 or float(latitude)<-90:
+        flash(" Format Error ! ", category='danger')
+    else:
+        cursor.execute(" update user set longitude = %s, latitude = %s where uid = %s ", (longitude, latitude, uid, ))
+        db.commit()
+        flash(" Successfully Update ! ", category='success')
+    return redirect(url_for('main'))
+
+@app.route('/addMoney', methods=['POST'])
+def addMoney():
+    uid = session.get('uid')
+    cursor.execute("select wallet from user where uid = %s ", (uid, ))
+    wallet = cursor.fetchone()[0]
+    value = int(request.form.get('value'))
+    if value<=0:
+        flash(" Value should be greater than ZERO ! ", category='danger')
+    else:
+        wallet += value
+        cursor.execute(" update user set wallet = %s where uid = %s ", (wallet, uid, ))
+        db.commit()
+        flash(" Successfully Add Money ! ", category='success')
     return redirect(url_for('main'))
 
 @app.route('/search', methods=['POST'])
@@ -180,7 +200,6 @@ def search():
     if keyword != "":
         cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where shopname like %s """, (longitude,latitude,'%'+keyword+'%',))
         shopList = cursor.fetchall()
-    print(shopList)
     # distance of user and shop
     distance = request.form.get('distance')
     if distance == 'near':
@@ -197,7 +216,6 @@ def search():
             for shop in shopList:
                 if shop not in checkList:
                     shopList.remove(shop)
-    print(shopList)
     # the range of price
     minPrice = request.form.get('minPrice')
     if minPrice == None and maxPrice != None:
@@ -218,7 +236,6 @@ def search():
             for shop in shopList:
                 if shop not in checkList:
                     shopList.remove(shop)
-    print(shopList)
     # keyword of meal 
     meal = request.form.get('meal')
     if meal != "":
@@ -235,7 +252,6 @@ def search():
             for shop in shopList:
                 if shop not in checkList:
                     shopList.remove(shop)
-    print(shopList)
     # shoptype
     category = request.form.get('category')
     if category != "":
@@ -248,7 +264,6 @@ def search():
             for shop in shopList:
                 if shop not in checkList:
                     shopList.remove(shop)
-    print(shopList)
     # change distance into ['near','medium','far'] 
     for index,shop in enumerate(shopList):
         shop = list(shop)
@@ -266,7 +281,7 @@ def search():
 @app.route('/openMenu',methods=['POST'])
 def openMenu():
     sid = request.form.get('sid')
-    cursor.execute("""select image,name,price,quanyity,iid from item where sid=%s """, (sid,))
+    cursor.execute("""select image,name,price,quantity,iid from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
     session['itemList'] = itemList
     return redirect(url_for('main'))
@@ -305,7 +320,6 @@ def validateShopInfo():
     result['error'] = False if result['nameResult'] + result['typeResult'] + result['longitudeResult'] + \
         result['latitudeResult'] == '' else True
     return jsonify(result)
-
 
 @app.route('/registerShop', methods=['POST'])
 def registerShop():
