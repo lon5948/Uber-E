@@ -109,9 +109,8 @@
           </div>
 
         </div>
-        <!-- 
-                
-             -->
+        <!-- search -->
+        <br></br>
         <form class="form-group" method="POST" action="{{url_for('search')}}"> 
         <h3>Search</h3>
         <div class=" row  col-xs-8">
@@ -121,10 +120,10 @@
               <div class="col-sm-5">
                 <input type="text" class="form-control" name="keyword" placeholder="Enter Shop name">
               </div>
-              <label class="control-label col-sm-1" for="distance">distance</label>
+              <label class="control-label col-sm-1" for="Distance">Distance</label>
+              
               <div class="col-sm-5">
-
-
+                
                 <select class="form-control" id="sel1" name="distance">
                   <option>--- select ---</option>
                   <option>near</option>
@@ -135,7 +134,7 @@
               </div>
 
             </div>
-
+            <br></br>
             <div class="form-group">
 
               <label class="control-label col-sm-1" for="Price">Price</label>
@@ -155,9 +154,9 @@
                 <input type="text" list="Meals" class="form-control" id="Meal" name="meal" placeholder="Enter Meal">
               </div>
             </div>
-
+            <br></br>
             <div class="form-group">
-              <label class="control-label col-sm-1" for="category"> category</label>
+              <label class="control-label col-sm-1" for="category">Category</label>
             
               
                 <div class="col-sm-5">
@@ -191,8 +190,10 @@
                   <td>{{ shop.0 }}</td>
                   <td>{{ shop.1 }}</td>
                   <td>{{ shop.2 }}</td>
+                <form role="form" method="POST" action="{{ url_for('openMenu') }}"></form>
                   <td>  <button type="button" class="btn btn-info " data-toggle="modal" data-target="#macdonald">Open menu</button></td>
-            
+                  <input type="hidden" name="sid" value="{{ shop.3 }}">
+                </form>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -228,29 +229,19 @@
                 </tr>
               </thead>
               <tbody>
+                {% for item in itemList %}
                 <tr>
-                  <th scope="row">1</th>
-                  <td><img src="Picture/1.jpg" with="50" heigh="10" alt="Hamburger"></td>
+                  <th scope="row">{{ loop.index }}</th>
+                  <td><img src="{{ url_for('static', filename='Picture/' + item.0) }}" with="50" heigh="10" alt="{{ item.0 }}"></td>
                 
-                  <td>Hamburger</td>
+                  <td>{{ item.1 }}</td>
                 
-                  <td>80 </td>
-                  <td>20 </td>
+                  <td>{{ item.2 }} </td>
+                  <td>{{ item.3 }} </td>
               
-                  <td> <input type="checkbox" id="cbox1" value="Hamburger"></td>
+                  <td> <input type="checkbox" id="cbox1" value="{{ item.4 }}"></td>
                 </tr>
-                <tr>
-                  <th scope="row">2</th>
-                  <td><img src="Picture/2.jpg" with="10" heigh="10" alt="coffee"></td>
-                 
-                  <td>coffee</td>
-             
-                  <td>50 </td>
-                  <td>20</td>
-              
-                  <td><input type="checkbox" id="cbox2" value="coffee"></td>
-                </tr>
-
+                {% endfor %}
               </tbody>
             </table>
           </div>

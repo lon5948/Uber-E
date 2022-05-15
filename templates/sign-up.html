@@ -64,45 +64,56 @@
 					
 
 					<!-- Start Sign In Form -->
-					<form action="#" class="fh5co-form animate-box" data-animate-effect="fadeIn">
+					<form method="POST" action="{{url_for('register')}}" class="fh5co-form animate-box" data-animate-effect="fadeIn"> 
 						<h2>Sign Up</h2>
+						{% block content %}
+                            <div class="form-group">
+                                {% for message in get_flashed_messages(with_categories=True) %}
+                                <div class="alert alert-{{ message[0] }}" style="color:red">
+                                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                    {{ message[1]}}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endblock content %}
 						<!-- <div class="form-group">
 							<div class="alert alert-success" role="alert">Your info has been saved.</div>
 						</div> -->
 						<div class="form-group">
 							<label for="name" class="sr-only">Name</label>
-							<input type="text" class="form-control" id="name" placeholder="Name" autocomplete="off">
+							<input type="text" class="form-control" id="name" name="name" placeholder="Name" autocomplete="off">
 						</div>
 						<div class="form-group">
 							<label for="name" class="sr-only">phonenumber</label>
-							<input type="text" class="form-control" id="phonenumber" placeholder="PhoneNumber" autocomplete="off">
+							<input type="text" class="form-control" id="phonenumber" name="phonenumber" placeholder="PhoneNumber" autocomplete="off">
 						</div>
 						<div class="form-group">
 							<label for="Account" class="sr-only">Account</label>
-							<input type="text" class="form-control" id="Account" placeholder="Account" autocomplete="off">
+							<input type="text" class="form-control" id="Account" name="Account" placeholder="Account" autocomplete="off">
 						</div>
 						<div class="form-group">
 							<label for="password" class="sr-only">Password</label>
-							<input type="password" class="form-control" id="password" placeholder="Password" autocomplete="off">
+							<input type="password" class="form-control" id="password" name="password" placeholder="Password" autocomplete="off">
 						</div>
 						<div class="form-group">
 							<label for="re-password" class="sr-only">Re-type Password</label>
-							<input type="password" class="form-control" id="re-password" placeholder="Re-type Password" autocomplete="off">
+							<input type="password" class="form-control" id="re-password" name="re-password" placeholder="Re-type Password" autocomplete="off">
 						</div>
 						<div class="form-group">
 							<label for="latitude" class="sr-only">latitude</label>
-							<input type="text" class="form-control" id="latitude" placeholder="Latitude" autocomplete="off">
+							<input type="text" class="form-control" id="latitude" name="latitude" placeholder="Latitude" autocomplete="off">
 						</div>
 						<div class="form-group">
 							<label for="longitude" class="sr-only">longitude</label>
-							<input type="text" class="form-control" id="longitude" placeholder="longitude" autocomplete="off">
+							<input type="text" class="form-control" id="longitude" name="longitude" placeholder="longitude" autocomplete="off">
 						</div>
-				
+						
 						<div class="form-group">
 							<p>Already registered? <a href="index.html">Sign In</a></p>
 						</div>
 						<div class="form-group">
 							<input type="submit" value="Sign Up" class="btn btn-primary">
+							
 						</div>
 						
 					</form>
@@ -128,4 +139,3 @@
 
 	</body>
 </html>
-

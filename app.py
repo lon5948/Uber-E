@@ -1,4 +1,6 @@
 import os
+from flask_script import Manager, Command, prompt_bool, Shell
+from flask_bcrypt import Bcrypt
 from flask import Flask, render_template, session, request, jsonify, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 import mysql.connector
@@ -9,6 +11,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 app.config['SECRET_KEY'] = b'S\xc5\xf5\xf4!\x9d=S\t\xb4\xb8\xcb\xb5\x16\x1cfXj\xde\x85\xe7\xf5\xe4\xe2'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 SESSION_TYPE = 'redis'
@@ -33,17 +36,100 @@ def hello():
     uid = session.get('uid', None)
     if uid is not None:
         session.pop('uid')
-    session['uid'] = 2
     return render_template('index.html')
 
+# index
+@app.route('/sign-up.html', methods=('GET', 'POST'))
+def register():
+    if request.method=='POST':
+        name = request.form.get('name')
+        password = request.form.get('password')
+        phonenumber = request.form.get('phonenumber')
+        Account = request.form.get('Account')
+        re_password = request.form.get('re-password')
+        latitude = request.form.get('latitude')
+        longitude = request.form.get('longitude')
+        error = None
+        if name=='':
+            error = 'Username is required.'
+        elif phonenumber=='':
+            error = 'phonenumber is required.'
+        elif Account=='':
+            error = 'account is required.'
+        elif password=='':
+            error = 'Password is required.'
+        elif re_password=='':
+            error = 're-type Password is required.'
+        elif latitude=='':
+            error = 'latitude is required.'
+        elif longitude=='':
+            error = 'longitude is required.'
+        elif password!=re_password:
+            error = 're-type password does not match'
+        elif password.isalnum()==False or Account.isalnum()==False:
+            error = 'Account and password format error'
+        elif phonenumber.isdigit()==False or len(phonenumber)!=10:
+            error = 'phonenumber format error'
+        elif float(latitude)>90 or float(latitude)<-90:
+            error = 'invalid latitude format'
+        elif float(longitude)>180 or float(longitude)<-180:
+            error = 'invalid longitude format'
+        else:
+            try:
+                float(latitude)
+                float(longitude)
+            except ValueError:
+                error = 'wrong latitude/longtitude format'
+            
+        cursor.execute("select MAX(uid) from user")
+        maxuid = cursor.fetchone()[0]
+        if error is None:
+            try:
+                cursor.execute(
+                    "INSERT INTO user (uid,name, password,account,phone,latitude,longitude) VALUES (%s,%s,%s,%s,%s,%s,%s)",(str(maxuid+1),name, bcrypt.generate_password_hash(password),Account,phonenumber,latitude,longitude),)
+                db.commit()
+            except mysql.connector.IntegrityError:
+                error = f"Account {Account} is already registered"
+            else:
+                flash('Register success!')
+                return redirect(url_for('login'))
+        print(error)
+        flash(error)
+    return render_template('sign-up.html')
 
+@app.route('/index.html', methods=('GET', 'POST'))
+def login():
+    if request.method=='POST':
+        Account = request.form.get('Account')
+        password = request.form.get('password')
+        error = None
+        cursor.execute('SELECT * FROM user WHERE account = %s', (Account,))
+        accountdata = cursor.fetchone()
+        if accountdata is None:
+            error = 'Login failed! Account not registered!'
+        elif bcrypt.check_password_hash(accountdata[2], password)==False:
+            error = 'Login failed! Incorrect password!'
+        if error is None:
+            session.clear()
+            session['uid'] = accountdata[0]
+            return redirect(url_for('main'))
+    
+        flash(error)
+        print(error)
+    return render_template('index.html')
+
+# main
 @app.route('/main', methods=['GET'])
 def main():
     uid = session.get('uid')
     userShop = None
     userShopItems = list()
-    shopList = session.get('shopList',list)
-    print(type(shopList))
+    if session.get('shopList') is not None:
+        shopList = session.get('shopList')
+        session.pop('shopList')
+    else:
+        shopList = list()
+    #itemList = session.get('itemList',list)
     if uid is not None:
         cursor.execute("select account,name,phone,longitude,latitude,wallet from user where uid = %s", (uid, ))
         info = cursor.fetchone()
@@ -68,7 +154,7 @@ def main():
             sid = tmp[4]
             cursor.execute("select name, price, quantity, image, iid from item where sid = %s", (sid, ))
             userShopItems = cursor.fetchall()
-    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, userShopItems=userShopItems,shopList=shopList)
+    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, shopList=shopList)
 
 # home
 @app.route('/editLocation', methods=['POST'])
@@ -88,19 +174,22 @@ def search():
     longitude = userLocation[0]
     latitude = userLocation[1]
     shopList = list()
-
+    checkList = list()
+    # keyword of shop.name
     keyword = request.form.get('keyword')
-    cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where shopname like %s """, (longitude,latitude,'%'+keyword+'%',))
-    shopList = cursor.fetchall()
-    
+    if keyword != "":
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where shopname like %s """, (longitude,latitude,'%'+keyword+'%',))
+        shopList = cursor.fetchall()
+    print(shopList)
+    # distance of user and shop
     distance = request.form.get('distance')
     if distance == 'near':
-        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))<=5000 """, (longitude,latitude,))
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) as distance,sid from shop where ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))<=5000 """, (longitude,latitude,longitude,latitude,))
     elif distance == 'medium':
-        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))>5000 and ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))<=15000 """, (longitude,latitude,longitude,latitude,))
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))>5000 and ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))<=15000 """, (longitude,latitude,longitude,latitude,longitude,latitude,))
     elif distance == 'far':
-        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))>15000 """, (longitude,latitude,))
-    if shopList == None:
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where ST_Distance_Sphere(point(%s,%s),point(longitude,latitude))>15000 """, (longitude,latitude,longitude,latitude,))
+    if len(shopList) == 0:
         shopList = cursor.fetchall()
     else :
         checkList = cursor.fetchall()
@@ -108,7 +197,8 @@ def search():
             for shop in shopList:
                 if shop not in checkList:
                     shopList.remove(shop)
-    
+    print(shopList)
+    # the range of price
     minPrice = request.form.get('minPrice')
     if minPrice == None and maxPrice != None:
         minPrice = 0
@@ -118,33 +208,39 @@ def search():
     cursor.execute("""select distinct sid from item where price>=%s and price<=%s """, (minPrice,maxPrice,))
     sids = cursor.fetchall()
     for sid in sids:
-        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where sid==%s""", (longitude,latitude,sid,))
+        sid= sid[0]
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where sid=%s""", (longitude,latitude,sid,))
         checkList.append(cursor.fetchone())
-    if shopList == None:
+    if len(shopList) == 0:
         shopList = checkList
     else:
         if len(checkList) != 0:
             for shop in shopList:
                 if shop not in checkList:
                     shopList.remove(shop)
-    
+    print(shopList)
+    # keyword of meal 
     meal = request.form.get('meal')
-    cursor.execute("""select distinct sid from item where name like %s """, ('%'+meal+'%',))
-    sids = cursor.fetchall()
-    for sid in sids:
-        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where sid==%s""", (longitude,latitude,sid,))
-        checkList.append(cursor.fetchone())
-    if shopList == None:
+    if meal != "":
+        cursor.execute("""select distinct sid from item where name like %s """, ('%'+meal+'%',))
+        sids = cursor.fetchall()
+        for sid in sids:
+            sid = sid[0]
+            cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where sid=%s""", (longitude,latitude,sid,))
+            checkList.append(cursor.fetchone())
+    if len(shopList) == 0:
         shopList = checkList
     else:
         if len(checkList) != 0:
             for shop in shopList:
                 if shop not in checkList:
                     shopList.remove(shop)
-    
+    print(shopList)
+    # shoptype
     category = request.form.get('category')
-    cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)) from shop where shoptype=%s """, (longitude,latitude,'%'+category+'%',))
-    if shopList == None:
+    if category != "":
+        cursor.execute("""select shopname,shoptype,ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where shoptype like %s """, (longitude,latitude,'%'+category+'%',))
+    if len(shopList) == 0:
         shopList = cursor.fetchall()
     else:
         checkList = cursor.fetchall()
@@ -152,7 +248,8 @@ def search():
             for shop in shopList:
                 if shop not in checkList:
                     shopList.remove(shop)
-
+    print(shopList)
+    # change distance into ['near','medium','far'] 
     for index,shop in enumerate(shopList):
         shop = list(shop)
         if float(shop[2]) < 5000:
@@ -165,6 +262,15 @@ def search():
         shopList[index] = shop
     session['shopList'] = shopList
     return redirect(url_for('main'))
+
+@app.route('/openMenu',methods=['POST'])
+def openMenu():
+    sid = request.form.get('sid')
+    cursor.execute("""select image,name,price,quanyity,iid from item where sid=%s """, (sid,))
+    itemList = cursor.fetchall()
+    session['itemList'] = itemList
+    return redirect(url_for('main'))
+
 
 # shop
 @app.route('/validateShopInfo', methods=['POST'])
