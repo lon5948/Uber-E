@@ -6,10 +6,10 @@ Use Flask to implement a Food Delivery Platform on localhost
     >  MySQL  8.0
 
 ## Installation
+ 
     $ pip install flask
-
-    $ pip install flask_script
-
+    
+in order to encrypt password by hash function
     $ pip install flask_bcrypt
     
 ## Folder Structure
