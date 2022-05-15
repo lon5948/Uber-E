@@ -1,9 +1,9 @@
 # Uber-E
-Use Flask to implement a Food Delivery Platform
+Use Flask to implement a Food Delivery Platform on localhost
 
 ## Version
     > python 3.7
-    > MySQL 8.0
+    > MySQL  8.0
     
 ## Folder Structure
 * [db/](https://github.com/lon5948/Uber-E/edit/main/db)                              
