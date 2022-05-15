@@ -7,7 +7,9 @@ Use Flask to implement a Food Delivery Platform on localhost
 
 ## Installation
     $ pip install flask
+
     $ pip install flask_script
+
     $ pip install flask_bcrypt
     
 ## Folder Structure
