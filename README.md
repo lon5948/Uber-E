@@ -12,7 +12,7 @@
   * [nav.html](https://github.com/lon5948/Uber-E/edit/main/templates/nav.html)           
   * [sign-up.html](https://github.com/lon5948/Uber-E/edit/main/templates/sign-up.html) 
 * [app.py](https://github.com/lon5948/Uber-E/edit/main/app.py)                          
-* [README.md](https://github.com/lon5948/Uber-E/edit/main/README.md) > 123
+* [README.md](https://github.com/lon5948/Uber-E/edit/main/README.md) 
 
 
 ## ER-model
