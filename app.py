@@ -39,7 +39,7 @@ def hello():
     return render_template('index.html')
 
 # index
-@app.route('/sign-up.html', methods=('GET', 'POST'))
+@app.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method=='POST':
         name = request.form.get('name')
@@ -97,7 +97,7 @@ def register():
         flash(error)
     return render_template('sign-up.html')
 
-@app.route('/index.html', methods=('GET', 'POST'))
+@app.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method=='POST':
         Account = request.form.get('Account')
