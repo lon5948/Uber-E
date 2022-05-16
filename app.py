@@ -38,6 +38,24 @@ def hello():
     return render_template('index.html')
 
 # index
+
+@app.route('/validateUser', methods=['POST'])
+def validateUser():
+    Account = request.form.get('Account')
+    cursor.execute("select * from user where account = %s", (Account, ))
+    res = cursor.fetchall()
+    result = dict()
+    if len(res) > 0: 
+        result['nameResult'] = 'This account is used'
+        result['error'] = True
+    elif Account=='':
+        result['nameResult'] = 'Account name is required'
+        result['error'] = True
+    else:
+        result['nameResult'] = ''
+        result['error'] = False
+    return jsonify(result)
+
 @app.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method=='POST':
@@ -125,7 +143,12 @@ def main():
         session.pop('shopList')
     else:
         shopList = list()
-   
+    if session.get('itemList') is not None:
+        itemList = session.get('itemList')
+        session.pop('itemList')
+    else:
+        itemList = list()
+
     if uid is not None:
         cursor.execute("select account,name,phone,longitude,latitude,wallet from user where uid = %s", (uid, ))
         info = cursor.fetchone()
@@ -150,7 +173,7 @@ def main():
             sid = tmp[4]
             cursor.execute("select name, price, quantity, image, iid from item where sid = %s", (sid, ))
             userShopItems = cursor.fetchall()
-    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, shopList=shopList, userShopItems=userShopItems)
+    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, shopList=shopList, userShopItems=userShopItems, itemList=itemList)
 
 # home
 @app.route('/editLocation', methods=['POST'])
@@ -279,15 +302,9 @@ def openMenu():
     print(sid)
     cursor.execute("""select image,name,price,quantity from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
-    print(itemList)
-    for index,item  in enumerate(itemList):
-        itemDict = dict()
-        itemDict['index'] = index+1
-        itemDict['picture'] = item[0]
-        itemDict['name'] = item[1]
-        itemDict['price'] = item[2]
-        itemDict['quantity'] = item[3]
-        return jsonify(itemDict)
+    session['itemList'] = itemList
+    return redirect(url_for('main'))
+
 
 @app.route('/order',methods=['POST'])
 def order():

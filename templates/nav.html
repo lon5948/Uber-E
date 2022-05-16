@@ -187,13 +187,12 @@
                   <td>{{ shop.2 }}</td>
                   <td>
                     <input type="hidden" value="{{ shop.3 }}" id="sid">
-                    <button id="openBTN" type="button" class="btn btn-info" data-toggle="modal" data-target="#open" onclick="openMenu();">Open menu</button>
+                    <button id="openBTN" type="button" class="btn btn-info" data-toggle="modal" data-target="#open" >Open menu</button>
                   </td>
                   </tr>
                 {% endfor %}
               </tbody>
             </table>
-  
             <!-- Modal -->
             <div class="modal fade" id="open"  data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
               <div class="modal-dialog">
@@ -219,16 +218,16 @@
                           </tr>
                         </thead>
                         <tbody>
-                        
+                        {% for item in itemList %}
                           <tr>
-                            <th scope="row" name="index"></th>
-                            <td name="itemPicture"></td>
-                            <td name="itemName"></td>
-                            <td name="itemPrice"></td>
-                            <td name="itemQuantity"></td>
+                            <th scope="row" name="index">{{ loop.index }}</th>
+                            <td name="itemPicture">{{ item.0 }}</td>
+                            <td name="itemName">{{ item.1 }}</td>
+                            <td name="itemPrice">{{ item.2 }}</td>
+                            <td name="itemQuantity">{{ item.3 }}</td>
                             <td> <input type="checkbox" id="cbox1"></td>
                           </tr>
-                        
+                        {% endfor %}
                         </tbody>
                         </table>
                       </div>
@@ -250,13 +249,6 @@
               type: "POST",
               url: $SCRIPT_ROOT + "/openMenu",
               data: form,
-              success: (data) => {
-                document.getElementsByName("index")[0].textContent = data.index;
-                document.getElementsByName("itemPicture")[0].textContent = data.picture;
-                document.getElementsByName("itemName")[0].textContent = data.name;
-                document.getElementsByName("itemPrice")[0].textContent = data.price;
-                document.getElementsByName("itemQuantity")[0].textContent = data.quantity;
-              },
               contentType: false,
               processData: false,
               dataType: "json"
