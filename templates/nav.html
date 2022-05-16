@@ -19,14 +19,15 @@
 
 <body>
  
-  <nav class="navbar navbar-inverse">
-    <div class="container-fluid">
-      <div class="navbar-header">
+  <nav class="navbar navbar-inverse justify-content-center">
+    <div class="navbar-header">
         <a class="navbar-brand " href="#">WebSiteName</a>
-      </div>
-
     </div>
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="/login"><span class="glyphicon glyphicon-log-out"></span>Logout</a></li>
+    </ul>
   </nav>
+
   <div class="container">
   	{% block content %}
     <div class="container">
@@ -42,7 +43,6 @@
     <ul class="nav nav-tabs">
       <li class="active"><a href="#home">Home</a></li>
       <li><a href="#menu1">shop</a></li>
-
 
     </ul>
 
@@ -186,10 +186,10 @@
                   <td>{{ shop.1 }}</td>
                   <td>{{ shop.2 }}</td>
                   <td>
-                    <input type="hidden" value="{{ shop.3 }}" id="sid">
+                    <input type="hidden" value="{{ shop.3 }}" id="sid" oninput="openMenu()">
                     <button id="openBTN" type="button" class="btn btn-info" data-toggle="modal" data-target="#open" >Open menu</button>
                   </td>
-                  </tr>
+                </tr>
                 {% endfor %}
               </tbody>
             </table>
