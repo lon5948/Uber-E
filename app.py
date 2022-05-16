@@ -125,11 +125,6 @@ def main():
         session.pop('shopList')
     else:
         shopList = list()
-    if session.get('itemList') is not None:
-        itemList = session.get('itemList')
-        session.pop('itemList')
-    else:
-        itemList = list()
    
     if uid is not None:
         cursor.execute("select account,name,phone,longitude,latitude,wallet from user where uid = %s", (uid, ))
@@ -155,7 +150,7 @@ def main():
             sid = tmp[4]
             cursor.execute("select name, price, quantity, image, iid from item where sid = %s", (sid, ))
             userShopItems = cursor.fetchall()
-    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, shopList=shopList, userShopItems=userShopItems, itemList=itemList)
+    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, shopList=shopList, userShopItems=userShopItems)
 
 # home
 @app.route('/editLocation', methods=['POST'])
@@ -281,11 +276,22 @@ def search():
 @app.route('/openMenu',methods=['POST'])
 def openMenu():
     sid = request.form.get('sid')
-    cursor.execute("""select image,name,price,quantity,iid from item where sid=%s """, (sid,))
+    print(sid)
+    cursor.execute("""select image,name,price,quantity from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
-    session['itemList'] = itemList
-    return redirect(url_for('main'))
+    print(itemList)
+    for index,item  in enumerate(itemList):
+        itemDict = dict()
+        itemDict['index'] = index+1
+        itemDict['picture'] = item[0]
+        itemDict['name'] = item[1]
+        itemDict['price'] = item[2]
+        itemDict['quantity'] = item[3]
+        return jsonify(itemDict)
 
+@app.route('/order',methods=['POST'])
+def order():
+    return redirect(url_for('main'))
 
 # shop
 @app.route('/validateShopInfo', methods=['POST'])
