@@ -186,9 +186,36 @@
                   <td>{{ shop.1 }}</td>
                   <td>{{ shop.2 }}</td>
                   <td>
-                    <input type="hidden" value="{{ shop.3 }}" id="sid" name="sid" >
-                    <button  type="button" id="openBTN" class="btn btn-info" data-toggle="modal" data-target="#open">Open menu</button>
+                    <input type="hidden" value="{{ shop.3 }}" id="{{ shop.3 }}" name="sid" >
+                    <button  type="button" id="{{ loop.index }}" class="btn btn-info" data-toggle="modal" data-target="#open">Open menu</button>
                   </td>
+                  <script type="text/javascript">
+                    $('#{{ loop.index }}').click(function openMenu() {
+                        var form = new FormData();
+                        form.append('sid', $("#{{ shop.3 }}").val()); 
+                        $.ajax({
+                          type: "POST",
+                          url: $SCRIPT_ROOT + "/openMenu",
+                          data: form,
+                          contentType: false,
+                          processData: false,
+                          dataType: "json",
+                          success: function(data) {  
+                            document.getElementById("menutbody").innerHTML = "";
+                            for (var i = 0; i < data.length; i++){
+                              var index = data[i].index;
+                              var itemPicture = data[i].picture;
+                              var itemName = data[i].name;
+                              var itemPrice = data[i].price;
+                              var itemQuantity = data[i].quantity;
+                              var tr_str = "<tr>"+"<th scope='row'>"+index+"</th>"+"<td>"+"<img src=static/Picture/"+itemPicture+" width='100' heigh='100'>"+"</td>"+"<td>"+itemName+"</td>" +"<td>" + itemPrice + "</td>" +"<td>" + itemQuantity + "</td>" +"<td>" + "<input type='checkbox' id='cbox1'>" + "</td>" +"</tr>";
+                              
+                              $("#menutbody").append(tr_str);
+                            }
+                          }
+                        });
+                    })
+                    </script>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -230,33 +257,7 @@
             </div>
           </div>
         </form>
-        <script type="text/javascript">
-        $('#openBTN').click(function openMenu() {
-            var form = new FormData();
-            form.append('sid', $("#sid").val()); 
-            $.ajax({
-              type: "POST",
-              url: $SCRIPT_ROOT + "/openMenu",
-              data: form,
-              contentType: false,
-              processData: false,
-              dataType: "json",
-              success: function(data) {  
-                document.getElementById("menutbody").innerHTML = "";
-                for (var i = 0; i < data.length; i++){
-                  var index = data[i].index;
-                  var itemPicture = data[i].picture;
-                  var itemName = data[i].name;
-                  var itemPrice = data[i].price;
-                  var itemQuantity = data[i].quantity;
-                  var tr_str = "<tr>"+"<th scope='row'>"+index+"</th>"+"<td>"+"<img src=static/Picture/"+itemPicture+" width='100' heigh='100'>"+"</td>"+"<td>"+itemName+"</td>" +"<td>" + itemPrice + "</td>" +"<td>" + itemQuantity + "</td>" +"<td>" + "<input type='checkbox' id='cbox1'>" + "</td>" +"</tr>";
-                  
-                  $("#menutbody").append(tr_str);
-                }
-              }
-            });
-        })
-        </script>
+        
         </div>
       </div>
       

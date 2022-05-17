@@ -319,8 +319,6 @@ def openMenu():
         itemDict['price'] = item[2]
         itemDict['quantity'] = item[3]
         retList.append(itemDict)
-    print(retList)
-    print('--------------------------------------------')
     return jsonify(retList)
 
 
