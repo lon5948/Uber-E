@@ -162,8 +162,14 @@ def main():
     if uid is not None:
         cursor.execute("select account,name,phone,longitude,latitude,wallet from user where uid = %s", (uid, ))
         info = cursor.fetchone()
+        cursor.execute("select uid from shop where uid = %s", (uid, ))
+        if cursor.fetchone() is None: 
+            role = "USER" 
+        else: 
+            role = "MANAGER"
         userInfo = {
             'account': info[0],
+            'role': role,
             'name': info[1],
             'phone': info[2],
             'longitude': info[3],
