@@ -238,7 +238,6 @@
               type: "POST",
               url: $SCRIPT_ROOT + "/openMenu",
               data: form,
-              cache: true,
               contentType: false,
               processData: false,
               dataType: "json",
@@ -250,8 +249,7 @@
                   var itemName = data[i].name;
                   var itemPrice = data[i].price;
                   var itemQuantity = data[i].quantity;
-                  
-                  var tr_str = "<tr>"+"<th scope='row'>"+index+"</th>"+"<td>"+itemPicture+"</td>"+"<td>"+itemName+"</td>" +"<td>" + itemPrice + "</td>" +"<td>" + itemQuantity + "</td>" +"<td>" + "<input type='checkbox' id='cbox1'>" + "</td>" +"</tr>";
+                  var tr_str = "<tr>"+"<th scope='row'>"+index+"</th>"+"<td>"+"<img src=static/Picture/"+itemPicture+" width='100' heigh='100'>"+"</td>"+"<td>"+itemName+"</td>" +"<td>" + itemPrice + "</td>" +"<td>" + itemQuantity + "</td>" +"<td>" + "<input type='checkbox' id='cbox1'>" + "</td>" +"</tr>";
                   
                   $("#menutbody").append(tr_str);
                 }
@@ -259,33 +257,6 @@
             });
         })
         </script>
-        <script type="text/javascript">
-          $('#openBTN').click(function openMenu() {
-              var form = new FormData();
-              form.append('sid', $("#sid").val()); 
-              $.ajax({
-                type: "POST",
-                url: $SCRIPT_ROOT + "/openMenu",
-                data: form,
-                contentType: false,
-                processData: false,
-                dataType: "json",
-                success: (data) => {  
-                  for (var i = 0; i < data.length; i++){
-                    var index = data[i].index;
-                    var itemPicture = url_for('static', filename='Picture/'+data[i].picture);
-                    var itemName = data[i].name;
-                    var itemPrice = data[i].price;
-                    var shopQuantity = data[i].quantity;
-                    
-                    var tr_str = "<tr>"+"<th scope='row'>"+index+"</th>"+"<td>"+itemPicture+"</td>"+"<td>"+itemNamee+"</td>" +"<td>" + itemPrice + "</td>" +"<td>" + itemQuantity + "</td>" +"<td>" + "<input type='checkbox' id='cbox1'>" + "</td>" +"</tr>";
-                    
-                    $("#menu tbody").append(tr_str);
-                  }
-                }
-              });
-          })
-            </script>
         </div>
       </div>
       
