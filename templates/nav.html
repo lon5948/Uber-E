@@ -242,8 +242,8 @@
               processData: false,
               dataType: "json",
               success: function(data) {  
+                document.getElementById("menutbody").innerHTML = "";
                 for (var i = 0; i < data.length; i++){
-                  
                   var index = data[i].index;
                   var itemPicture = data[i].picture;
                   var itemName = data[i].name;
