@@ -183,6 +183,8 @@ def main():
             sid = tmp[4]
             cursor.execute("select name, price, quantity, image, iid from item where sid = %s", (sid, ))
             userShopItems = cursor.fetchall()
+    print('shopList: ',shopList)
+    print('itemList: ',itemList)
     return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, shopList=shopList, userShopItems=userShopItems, itemList=itemList)
 
 # home
@@ -305,10 +307,19 @@ def search():
 @app.route('/openMenu',methods=['POST'])
 def openMenu():
     sid = request.form.get('sid')
+    print(sid)
     cursor.execute("""select image,name,price,quantity from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
-    session['itemList'] = itemList
-    return redirect(url_for('main'))
+    retList = list()
+    for index,item in enumerate(itemList):
+        itemDict = dict()
+        itemDict['index'] = index+1
+        itemDict['picture'] = item[0]
+        itemDict['name'] = item[1]
+        itemDict['price'] = item[2]
+        itemDict['quantity'] = item[3]
+        retList.append(itemDict)
+    return jsonify(retList)
 
 
 @app.route('/order',methods=['POST'])
