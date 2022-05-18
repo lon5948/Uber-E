@@ -10,10 +10,13 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-table.css">
   <link rel="stylesheet" href="{{url_for('static', filename='css/Warn.css')}}">
-
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script> 
+  
   <title>Hello, world!</title>
 </head>
 
@@ -43,7 +46,6 @@
     <ul class="nav nav-tabs">
       <li class="active"><a href="#home">Home</a></li>
       <li><a href="#menu1">shop</a></li>
-
     </ul>
 
     <div class="tab-content">
@@ -169,7 +171,7 @@
         <div class="row">
           <div class="  col-xs-8">
             <form role="form" method="POST" action="{{ url_for('order') }}">
-            <table class="table" style=" margin-top: 15px;">
+            <table id="shopTable" class="table" style=" margin-top: 15px;">
               <thead>
                 <tr>
                   <th scope="col">#</th>
@@ -179,9 +181,9 @@
                 </tr>
               </thead>
               <tbody>
-                {% for shop in shopList %}
+                {% for shop in shops %}
                 <tr>
-                  <th scope="row">{{ loop.index }}</th>
+                  <th scope="row">{{ loop.index + (page - 1) * per_page }}</th>
                   <td>{{ shop.0 }}</td>
                   <td>{{ shop.1 }}</td>
                   <td>{{ shop.2 }}</td>
@@ -216,10 +218,12 @@
                         });
                     })
                     </script>
+                    <!--  Start Pagination -->
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
+
             <!-- Modal -->
             <div class="modal fade" id="open"  data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
               <div class="modal-dialog">
@@ -259,6 +263,7 @@
         </form>
         
         </div>
+        {{ pagination.links }}
       </div>
       
       <div id="menu1" class="tab-pane fade">
@@ -574,6 +579,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
     -->
+    
+
 </body>
 
 </html>

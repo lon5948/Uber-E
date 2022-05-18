@@ -1,6 +1,7 @@
 import os
 from flask_bcrypt import Bcrypt
 from flask import Flask, render_template, session, request, jsonify, flash, redirect, url_for
+from flask_paginate import Pagination, get_page_args
 from werkzeug.utils import secure_filename
 import mysql.connector
 import time
@@ -29,7 +30,6 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 @app.route('/')
 def hello():
     uid = session.get('uid', None)
@@ -42,7 +42,7 @@ def hello():
 @app.route('/validateUser', methods=['POST'])
 def validateUser():
     Account = request.form.get('Account')
-    cursor.execute("select * from user where account = %s", (Account, ))
+    cursor.execute("select * from user where binary account = %s", (Account, ))
     res = cursor.fetchall()
     result = dict()
     if len(res) > 0: 
@@ -123,7 +123,7 @@ def login():
         Account = request.form.get('Account')
         password = request.form.get('password')
         error = None
-        cursor.execute('SELECT * FROM user WHERE account = %s', (Account,))
+        cursor.execute('SELECT * FROM user WHERE binary account = %s', (Account,))
         accountdata = cursor.fetchone()
         if accountdata is None:
             error = 'Account not registered!'
@@ -150,7 +150,7 @@ def main():
     userShopItems = list()
     if session.get('shopList') is not None:
         shopList = session.get('shopList')
-        session.pop('shopList')
+        #session.pop('shopList')
     else:
         shopList = list()
     if session.get('itemList') is not None:
@@ -158,6 +158,9 @@ def main():
         session.pop('itemList')
     else:
         itemList = list()
+    
+    def get_shop(offset, per_page):
+        return shopList[offset: offset + per_page]
 
     if uid is not None:
         cursor.execute("select account,name,phone,longitude,latitude,wallet from user where uid = %s", (uid, ))
@@ -189,9 +192,13 @@ def main():
             sid = tmp[4]
             cursor.execute("select name, price, quantity, image, iid from item where sid = %s", (sid, ))
             userShopItems = cursor.fetchall()
-    print('shopList: ',shopList)
-    print('itemList: ',itemList)
-    return render_template('nav.html' ,userInfo=userInfo, userShop=userShop, shopList=shopList, userShopItems=userShopItems, itemList=itemList)
+    page = int(request.args.get('page', 1))
+    per_page = 5
+    offset = (page - 1) * per_page
+    total = len(shopList)
+    pagination_shop = get_shop(offset, per_page)
+    pagination = Pagination(page=page, per_page=per_page, total=total,css_framework='bootstrap4')
+    return render_template('nav.html' ,page=page, per_page=per_page, pagination=pagination, userInfo=userInfo, userShop=userShop, shops=pagination_shop, userShopItems=userShopItems, itemList=itemList)
 
 # home
 @app.route('/editLocation', methods=['POST'])
@@ -308,12 +315,12 @@ def search():
         shop = tuple(shop)
         shopList[index] = shop
     session['shopList'] = shopList
+    session['search'] = 1
     return redirect(url_for('main'))
 
 @app.route('/openMenu',methods=['POST'])
 def openMenu():
     sid = request.form.get('sid')
-    print(sid)
     cursor.execute("""select image,name,price,quantity from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
     retList = list()
@@ -326,7 +333,6 @@ def openMenu():
         itemDict['quantity'] = item[3]
         retList.append(itemDict)
     return jsonify(retList)
-
 
 @app.route('/order',methods=['POST'])
 def order():
