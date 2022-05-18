@@ -1,5 +1,5 @@
 # Uber-E
-Use Flask to implement a Food Delivery Platform on localhost
+Use Flask to implement a Food Ordering Service on localhost
 
 ## Version
     >  python 3.7
