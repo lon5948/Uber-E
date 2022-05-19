@@ -1,7 +1,7 @@
 import os
 from flask_bcrypt import Bcrypt
 from flask import Flask, render_template, session, request, jsonify, flash, redirect, url_for
-from flask_paginate import Pagination, get_page_args
+from flask_paginate import Pagination
 from werkzeug.utils import secure_filename
 import mysql.connector
 import time
