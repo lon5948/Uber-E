@@ -33,8 +33,8 @@ CREATE TABLE `shop` (
   PRIMARY KEY (`sid`),
   KEY `uid` (`uid`),
   SPATIAL KEY `idx_location` (`location`),
-  CONSTRAINT `shop_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `shop_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,7 +43,7 @@ CREATE TABLE `shop` (
 
 LOCK TABLES `shop` WRITE;
 /*!40000 ALTER TABLE `shop` DISABLE KEYS */;
-INSERT INTO `shop` VALUES (1,1,'mm','fast',121,24.7847,_binary '\0\0\0\0\0\0\0™\”où@^@Dë˙\„\„\»8@'),(2,10,'test 123','test 456',50,120,_binary '\0\0\0\0\0\0\0\0\0\0\0\0\0I@\0\0\0\0\0\0^@');
+INSERT INTO `shop` VALUES (1,11,'bobo','drink',23.0026,121.003,_binary '\0\0\0\0\0\0\0gH≈´\07@,ÒÄ≤)@^@'),(2,12,'achi','bendon',23.0055,121.006,_binary '\0\0\0\0\0\0\0°íÑég7@}¯C}\\@^@'),(3,13,'arong','fast food',23.0054,121.005,_binary '\0\0\0\0\0\0\0Õ•~ˇb7@\Z˙\'∏X@^@'),(4,14,'ice-cream','dessert',23.0026,121.003,_binary '\0\0\0\0\0\0\0Å&¬Üß\07@ˆ—©+@^@'),(5,15,'polo','sandwich',23.6546,121.357,_binary '\0\0\0\0\0\0\0π\ZŸïñß7@Ù\√\·\—V^@'),(6,16,'qq','drink',23.6145,121.263,_binary '\0\0\0\0\0\0\0Zd;\ﬂOù7@¥<\Ó\ŒP^@');
 /*!40000 ALTER TABLE `shop` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -56,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-11 23:43:23
+-- Dump completed on 2022-05-19 12:02:20
