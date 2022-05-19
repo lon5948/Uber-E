@@ -89,16 +89,18 @@ def register():
             error = 'name format error'
         elif phonenumber.isdigit()==False or len(phonenumber)!=10:
             error = 'phonenumber format error'
-        elif float(latitude)>90 or float(latitude)<-90:
-            error = 'invalid latitude format'
-        elif float(longitude)>180 or float(longitude)<-180:
-            error = 'invalid longitude format'
         else:
             try:
                 float(latitude)
                 float(longitude)
+                if float(latitude)>90 or float(latitude)<-90:
+                    error = 'invalid latitude format'
+                if float(longitude)>180 or float(longitude)<-180:
+                    error = 'invalid longitude format'
             except ValueError:
                 error = 'wrong latitude/longtitude format'
+        
+        
             
         cursor.execute("select MAX(uid) from user")
         maxuid = cursor.fetchone()[0]
