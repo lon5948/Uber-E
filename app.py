@@ -208,12 +208,15 @@ def editLocation():
     uid = session.get('uid')
     longitude = request.form.get('longitude')
     latitude = request.form.get('latitude')
-    if float(longitude)>180 or float(longitude)<-180 or float(latitude)>90 or float(latitude)<-90:
+    try:
+        if float(longitude)>180 or float(longitude)<-180 or float(latitude)>90 or float(latitude)<-90:
+            flash(" Format Error ! ", category='danger')
+        else:
+            cursor.execute(" update user set longitude = %s, latitude = %s where uid = %s ", (longitude, latitude, uid, ))
+            db.commit()
+            flash(" Successfully Update ! ", category='success')
+    except:
         flash(" Format Error ! ", category='danger')
-    else:
-        cursor.execute(" update user set longitude = %s, latitude = %s where uid = %s ", (longitude, latitude, uid, ))
-        db.commit()
-        flash(" Successfully Update ! ", category='success')
     return redirect(url_for('main'))
 
 @app.route('/addMoney', methods=['POST'])
@@ -221,14 +224,17 @@ def addMoney():
     uid = session.get('uid')
     cursor.execute("select wallet from user where uid = %s ", (uid, ))
     wallet = cursor.fetchone()[0]
-    value = int(request.form.get('value'))
-    if value<=0 or int(value)!=value:
-        flash(" Value should be greater than ZERO ! ", category='danger')
-    else:
-        wallet += value
-        cursor.execute(" update user set wallet = %s where uid = %s ", (wallet, uid, ))
-        db.commit()
-        flash(" Successfully Add Money ! ", category='success')
+    value = request.form.get('value')
+    try:
+        if int(value)<=0:
+            flash(" Value should be greater than ZERO ! ", category='danger')
+        else:
+            wallet += int(value)
+            cursor.execute(" update user set wallet = %s where uid = %s ", (wallet, uid, ))
+            db.commit()
+            flash(" Successfully Add Money! ", category='success')
+    except:
+        flash(" Value Format Error!", category='danger')
     return redirect(url_for('main'))
 
 @app.route('/search', methods=['POST'])
@@ -481,4 +487,4 @@ def deleteItem():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
