@@ -227,14 +227,14 @@ def addMoney():
     value = request.form.get('value')
     try:
         if int(value)<=0:
-            flash(" Value should be greater than ZERO ! ", category='danger')
+            flash("Value Format Error!", category='danger')
         else:
             wallet += int(value)
             cursor.execute(" update user set wallet = %s where uid = %s ", (wallet, uid, ))
             db.commit()
             flash(" Successfully Add Money! ", category='success')
     except:
-        flash(" Value Format Error!", category='danger')
+        flash("Value Format Error!", category='danger')
     return redirect(url_for('main'))
 
 @app.route('/search', methods=['POST'])
@@ -274,7 +274,7 @@ def search():
         minPrice = 0
     elif maxPrice == '' and minPrice != '':
         maxPrice = 1e9
-    else:
+    if minPrice!='' and maxPrice!='':
         cursor.execute("""select distinct sid from item where price>=%s and price<=%s """, (minPrice,maxPrice,))
         sids = cursor.fetchall()
         for sid in sids:
@@ -329,6 +329,7 @@ def search():
 @app.route('/openMenu',methods=['POST'])
 def openMenu():
     sid = request.form.get('sid')
+    session['sid'] = sid
     cursor.execute("""select image,name,price,quantity from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
     retList = list()
@@ -344,6 +345,43 @@ def openMenu():
 
 @app.route('/order',methods=['POST'])
 def order():
+    uid = session['uid']
+    cursor.execute("""select longitude,latitude from user where uid=%s """, (uid,))
+    userLocation = cursor.fetchone()
+    longitude = userLocation[0]
+    latitude = userLocation[1]
+    sid = session['sid']
+    cursor.execute("""select ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where sid=%s """, (longitude,latitude,sid,))
+    distance = cursor.fetchone()[0]
+    cursor.execute("""select price,quantity,name from item where sid=%s """, (sid,))
+    itemList = cursor.fetchall()
+    subtotal = 0
+    orderList = list()
+    errorList = list()
+    for i,item in enumerate(itemList):
+        num = request.form.get(str(i+1))
+        if num == '':
+            num = 0
+        orderList.append(num)
+        if int(orderList[i]) > item[1]:
+            errorList.append(item[2])
+        subtotal += int(orderList[i])*item[0]
+    if len(errorList) != 0:
+        string = 'Order Quantity > Shop Quantity  --> '
+        for error in errorList:
+            string +=  error + ' | '
+        string = string[0:len(string)-2]
+        flash(string,category='danger')
+        return redirect(url_for('main'))
+    type = request.form.get('type')
+    deliveryFee = 0
+    if type == 'Delivery':
+        if distance <= 5000:
+            deliveryFee = 20 
+        elif distance > 50000:
+            deliveryFee = 50
+        else:
+            deliveryFee = 35
     return redirect(url_for('main'))
 
 # shop
@@ -487,4 +525,4 @@ def deleteItem():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
