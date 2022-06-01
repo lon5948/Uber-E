@@ -372,12 +372,10 @@ def calculatePrice():
         latitude = userLocation[1]
         cursor.execute("""select ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where sid=%s """, (longitude,latitude,sid,))
         distance = cursor.fetchone()[0]
-        if distance <= 5000:
-            deliveryFee = 20 
-        elif distance > 50000:
-            deliveryFee = 50
+        if distance < 1000:
+            deliveryFee = 10
         else:
-            deliveryFee = 35
+            deliveryFee = round((distance/1000)*10)
     else:
         deliveryFee = 0
     cursor.execute("""select image,name,price,quantity from item where sid=%s """, (sid,))
@@ -400,44 +398,47 @@ def calculatePrice():
     orderDict['subtotal'] = subtotal
     orderDict['delivery'] = deliveryFee
     orderDict['total'] = subtotal + deliveryFee
+    session['total'] = subtotal + deliveryFee
     return jsonify(orderDict)
 
 @app.route('/order',methods=['POST'])
 def order():
+    uid = session['uid']
     sid = session['sid']
-    print(sid)
-    cursor.execute("""select quantity,name from item where sid=%s """, (sid,))
+    cursor.execute("""select quantity,name,iid from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
     money = session['money']
-    subtotal = 0
+    total = session['total']
     error = ''
-    orderList = list()
     errorList = list()
+    dic = dict()
     for i,item in enumerate(itemList):
-        num = request.form.get(str(i+1))
-        try:
-            if num == '':
-                num = 0
-            elif int(num) <= 0:
-                flash("Order Quantity Format Error!",category='danger')
-                return redirect(url_for('main'))
-        except:
-            flash("Order Quantity Format Error!",category='danger')
-            return redirect(url_for('main'))
-        orderList.append(num)
-        if int(orderList[i]) > item[1]:
-            errorList.append(item[2])
-        subtotal += int(orderList[i])*item[0]
+        num = request.form.get('a'+str(i+1))
+        if num != '':
+            dic[item[2]] = num
+        else:
+            num = 0
+        if int(num) > int(item[0]):
+            errorList.append(item[1])
     if len(errorList) != 0:
         error = "Order Quantity > Shop Quantity  --> "
         for e in errorList:
             error +=  e + ' | '
         error = error[0:len(error)-2]
         flash(error,category='danger')
-        return redirect(url_for('main'))
-    
-    if money < (deliveryFee+subtotal):
+    elif money < total:
         flash("Insufficient Balance",category='danger')
+    else:
+        for key,value in dic.items():
+            cursor.execute("select quantity from item where iid = %s", (key,))
+            q = cursor.fetchone()[0]
+            q -= int(value)
+            cursor.execute("update item set quantity = %s where iid = %s", (q,key, ))
+            db.commit()
+        money -= total
+        cursor.execute("update user set wallet = %s where uid = %s", (money,uid ))
+        db.commit()
+        flash("Successfully Order",category='success')
     return redirect(url_for('main'))
 
 # shop

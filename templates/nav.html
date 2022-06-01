@@ -213,7 +213,7 @@
                               var itemName = data[i].name;
                               var itemPrice = data[i].price;
                               var itemQuantity = data[i].quantity;
-                              var tr_str = "<tr>"+"<th scope='row'>"+index+"</th>"+"<td>"+"<img src=static/Picture/"+itemPicture+" width='100' heigh='100'>"+"</td>"+"<td>"+itemName+"</td>" +"<td>" + itemPrice + "</td>" +"<td>" + itemQuantity + "</td>" +"<td>" + "<input type='text' id='a"+index+"' oninput='validateQuantity();'>" + "</td>" +"</tr>";
+                              var tr_str = "<tr>"+"<th scope='row'>"+index+"</th>"+"<td>"+"<img src=static/Picture/"+itemPicture+" width='100' heigh='100'>"+"</td>"+"<td>"+itemName+"</td>" +"<td>" + itemPrice + "</td>" +"<td>" + itemQuantity + "</td>" +"<td>" + "<input type='text' name='a"+index+"' id='a"+index+"' oninput='validateQuantity();'>" + "</td>" +"</tr>";
                               
                               $("#menutbody").append(tr_str);
                             }
@@ -399,7 +399,7 @@
                     <p name='subtotal'></p>
                     <p name='delivery'></p>
                     <p name='total'></p>
-                    <button type="button" class="btn btn-default" >Order</button>
+                    <button type="submit" class="btn btn-default" >Order</button>
                   </div>
                 </div>
               </div>
