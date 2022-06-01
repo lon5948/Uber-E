@@ -16,33 +16,37 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `item`
+-- Table structure for table `orders`
 --
 
-DROP TABLE IF EXISTS `item`;
+DROP TABLE IF EXISTS `orders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `item` (
-  `iid` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `orders` (
+  `oid` int NOT NULL AUTO_INCREMENT,
+  `status` varchar(10) NOT NULL,
+  `start` varchar(16) NOT NULL,
+  `end` varchar(16) NOT NULL,
+  `distance` float DEFAULT NULL,
+  `total` int DEFAULT NULL,
+  `type` varchar(255) NOT NULL,
+  `uid` int DEFAULT NULL,
   `sid` int DEFAULT NULL,
-  `quantity` int DEFAULT NULL,
-  `name` varchar(255) DEFAULT NULL,
-  `price` int DEFAULT NULL,
-  `image` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`iid`),
+  PRIMARY KEY (`oid`),
+  KEY `uid` (`uid`),
   KEY `sid` (`sid`),
-  CONSTRAINT `item_ibfk_1` FOREIGN KEY (`sid`) REFERENCES `shop` (`sid`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`),
+  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`sid`) REFERENCES `shop` (`sid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `item`
+-- Dumping data for table `orders`
 --
 
-LOCK TABLES `item` WRITE;
-/*!40000 ALTER TABLE `item` DISABLE KEYS */;
-INSERT INTO `item` VALUES (16,17,18,'hamburger',80,'1653468990936161400.jpg'),(17,17,7,'french fries',50,'1653469017658577700.jpg'),(18,18,0,'latte',160,'1653469097963337500.jpg'),(19,18,27,'espresso',130,'1653469111860854300.png'),(20,19,10,'a',100,'1653551588575691300.gif'),(21,20,10,'b',100,'1653551617428719600.gif'),(22,21,10,'c',100,'1653551631306578500.gif'),(23,22,10,'d',100,'1653551661371712200.jpg'),(25,23,12,'juice',45,'1653556620481159000.gif'),(26,23,45,'hj',12,'1653556641589132200.jpg'),(27,23,78,'fhgj',15,'1653556656752810600.gif'),(28,23,15,'hnj',78,'1653556669921868500.jpg'),(29,23,10,'spring',62,'1653556680027986300.jpg'),(30,23,78,'jnkj',55,'1653556692868414300.jpg');
-/*!40000 ALTER TABLE `item` ENABLE KEYS */;
+LOCK TABLES `orders` WRITE;
+/*!40000 ALTER TABLE `orders` DISABLE KEYS */;
+/*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -54,4 +58,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-06-02  0:19:24
+-- Dump completed on 2022-06-02  0:03:51

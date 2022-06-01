@@ -150,7 +150,6 @@ def main():
     userShopItems = list()
     if session.get('shopList') is not None:
         shopList = session.get('shopList')
-        #session.pop('shopList')
     else:
         shopList = list()
     if session.get('itemList') is not None:
@@ -158,6 +157,10 @@ def main():
         session.pop('itemList')
     else:
         itemList = list()
+    if session.get('recordList') is not None:
+        recordList = session.get('recordList')
+    else:
+        recordList = list()
     
     def get_shop(offset, per_page):
         return shopList[offset: offset + per_page]
@@ -179,6 +182,7 @@ def main():
             'latitude': info[4],
             'wallet': info[5]
         }
+        session['name'] = info[1]
         session['money'] = info[5]
         cursor.execute("select shopname, shoptype, latitude, longitude, sid from shop where uid = %s", (uid, ))
         res = cursor.fetchall()
@@ -199,7 +203,7 @@ def main():
     total = len(shopList)
     pagination_shop = get_shop(offset, per_page)
     pagination = Pagination(page=page, per_page=per_page, total=total,css_framework='bootstrap4')
-    return render_template('nav.html' ,page=page, per_page=per_page, pagination=pagination, userInfo=userInfo, userShop=userShop, shops=pagination_shop, userShopItems=userShopItems, itemList=itemList)
+    return render_template('nav.html' ,page=page, per_page=per_page, pagination=pagination, userInfo=userInfo, recordList=recordList, userShop=userShop, shops=pagination_shop, userShopItems=userShopItems, itemList=itemList)
 
 # home
 @app.route('/editLocation', methods=['POST'])
@@ -221,15 +225,20 @@ def editLocation():
 @app.route('/addMoney', methods=['POST'])
 def addMoney():
     uid = session.get('uid')
-    cursor.execute("select wallet from user where uid = %s ", (uid, ))
-    wallet = cursor.fetchone()[0]
+    cursor.execute("select name,wallet from user where uid = %s ", (uid, ))
+    info = cursor.fetchone()
+    wallet = info[1]
     value = request.form.get('value')
     try:
         if int(value)<=0:
             flash("Value Format Error!", category='danger')
         else:
             wallet += int(value)
+            now = time.localtime()
+            Time = str(now[0])+'/'+str(now[1])+'/'+str(now[2])+' '+str(now[3]).zfill(2)+':'+str(now[4]).zfill(2)+':'+str(now[5]).zfill(2)
             cursor.execute(" update user set wallet = %s where uid = %s ", (wallet, uid, ))
+            db.commit()
+            cursor.execute("insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)",(uid, 'Recharge', Time, info[0], '+'+value,))
             db.commit()
             flash(" Successfully Add Money! ", category='success')
     except:
@@ -322,7 +331,6 @@ def search():
         shop = tuple(shop)
         shopList[index] = shop
     session['shopList'] = shopList
-    session['search'] = 1
     return redirect(url_for('main'))
 
 @app.route('/openMenu',methods=['POST'])
@@ -405,9 +413,16 @@ def calculatePrice():
 def order():
     uid = session['uid']
     sid = session['sid']
+    cursor.execute("""select shopname,uid from shop where sid=%s """, (sid,))
+    info = cursor.fetchone()
+    shopName = info[0]
+    uidShop = info[1]
+    cursor.execute("""select wallet from user where uid=%s """, (uidShop,))
+    walletShop = cursor.fetchone()[0]
     cursor.execute("""select quantity,name,iid from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
     money = session['money']
+    name = session['name']
     total = session['total']
     error = ''
     errorList = list()
@@ -435,8 +450,17 @@ def order():
             q -= int(value)
             cursor.execute("update item set quantity = %s where iid = %s", (q,key, ))
             db.commit()
+        now = time.localtime()
+        Time = str(now[0])+'/'+str(now[1])+'/'+str(now[2])+' '+str(now[3]).zfill(2)+':'+str(now[4]).zfill(2)+':'+str(now[5]).zfill(2)
         money -= total
+        walletShop += total
         cursor.execute("update user set wallet = %s where uid = %s", (money,uid ))
+        db.commit()
+        cursor.execute("""insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)""",(uid, 'Payment', Time, shopName, str(-total)))
+        db.commit()
+        cursor.execute("update user set wallet = %s where uid = %s", (walletShop,uidShop))
+        db.commit()
+        cursor.execute("""insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)""",(uidShop, 'Receive', Time, name, '+'+str(total)))
         db.commit()
         flash("Successfully Order",category='success')
     return redirect(url_for('main'))
@@ -580,6 +604,22 @@ def deleteItem():
     flash('Delete Success.', category='success')
     return redirect(url_for('main'))
 
+# transaction record
+@app.route('/transactionRecord', methods=['POST'])
+def transactionRecord():
+    uid = session.get('uid')
+    action = request.form.get('transactionAction')
+    if action == 'All':
+        cursor.execute("""select * from record""")
+    elif action == 'Payment':
+        cursor.execute("""select * from record where action=%s """, ('Payment',))
+    elif action == 'Receive':
+        cursor.execute("""select * from record where action=%s """, ('Receive',))
+    elif action == 'Recharge':
+        cursor.execute("""select * from record where action=%s """, ('Recharge',))
+    recordList = cursor.fetchall()
+    session['recordList'] = recordList
+    return redirect(url_for('main'))
 
 if __name__ == "__main__":
     app.run(debug=True)

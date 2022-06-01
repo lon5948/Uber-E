@@ -47,11 +47,62 @@
 {% endblock content %}
 
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#home" data-toggle="tab">Home</a></li>
-      <li><a href="#menu1" data-toggle="tab">shop</a></li>
+      <li ><a href="#home" data-toggle="tab">Home</a></li>
+      <li ><a href="#menu1" data-toggle="tab">shop</a></li>
+      <li ><a href="#myOrder" data-toggle="tab">MyOrder</a></li>
+      <li ><a href="#shopOrder" data-toggle="tab">Shop Order</a></li>
+      <li ><a href="#transaction" data-toggle="tab">Transaction Record</a></li>
     </ul>
-
+    
+    
     <div class="tab-content">
+      <!-- Transaction Filter -->
+      <div id="transaction" class="tab-pane fade">
+        <div class="form-group">
+        <div class=" row  col-xs-8">
+          <label class="control-label col-sm-1" for="transactionAction">Action</label>
+          <div class="col-sm-5">
+            <select class="form-control" id="transactionAction" name="transactionAction">
+              <option>All</option>
+              <option>Payment</option>
+              <option>Receive</option>
+              <option>Recharge</option>
+            </select>
+          </div>
+        </div>
+        </div>
+        <!-- Transaction Table -->
+        <div class="row">
+          <div class="  col-xs-8">
+            <form role="form" method="POST" action="{{ url_for('transactionRecord') }}">
+            <table id="transTable" class="table" style=" margin-top: 15px;">
+              <thead>
+                <tr>
+                  <th scope="col">Record ID</th>
+                  <th scope="col">Action</th>
+                  <th scope="col">Time</th>
+                  <th scope="col">Trader</th>
+                  <th scope="col">Amount Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in recordList %}
+                <tr>
+                  <td>{{ record.0 }}</td>
+                  <td>{{ record.1 }}</td>
+                  <td>{{ record.2 }}</td>
+                  <td>{{ record.3 }}</td>
+                  <td>{{ record.4 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Home -->
       <div id="home" class="tab-pane fade in active">
         <h3>Profile</h3>
         <div class="row">
@@ -123,7 +174,7 @@
               <div class="col-sm-5">
                 <input type="text" class="form-control" name="keyword" placeholder="Enter Shop name">
               </div>
-              <label class="control-label col-sm-1" for="Distance">distance</label>
+              <label class="control-label col-sm-1" for="distance">distance</label>
               
               <div class="col-sm-5">
                 
@@ -294,11 +345,16 @@
                       </div>
                     </div>
                   </div>
-                  <label for="type"> Type </label>
-                    <select id="type" name="type">
+                  <br></br>
+                  <div class="col-xs-8">
+                    <label class="control-label col-sm-2" for="type"> Type  </label>
+                    <div class="col-sm-5">
+                    <select class="form-control" id="type" name="type">
                       <option>Delivery</option>
                       <option>Pick-up</option>
                     </select>
+                    </div>
+                  </div>
                   <div class="modal-footer">
                     <p id="Warn" name="QuantityWarn" style="color:red"><small>  </small></p>
                     <button type="button" id="calculate" class="btn btn-default" data-toggle="modal" data-target="#ordercheck" >Calculate the Price</button>

@@ -34,7 +34,7 @@ CREATE TABLE `shop` (
   KEY `uid` (`uid`),
   SPATIAL KEY `idx_location` (`location`),
   CONSTRAINT `shop_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,7 +43,7 @@ CREATE TABLE `shop` (
 
 LOCK TABLES `shop` WRITE;
 /*!40000 ALTER TABLE `shop` DISABLE KEYS */;
-INSERT INTO `shop` VALUES (1,17,'macdonald','fast food',24.7847,121,_binary '\0\0\0\0\0\0\0D‘ú\ã\ã\È8@ª\Óo@^@'),(2,18,'starbucks','coffee',24.8115,120.975,_binary '\0\0\0\0\0\0\0×€Y»\Ï8@\nü\ì\ëa>^@'),(3,19,'user3','user3',20,120,_binary '\0\0\0\0\0\0\0\0\0\0\0\0\04@\0\0\0\0\0\0^@'),(4,20,'user4','user4',20,120,_binary '\0\0\0\0\0\0\0\0\0\0\0\0\04@\0\0\0\0\0\0^@'),(5,21,'user5','user5',20,120,_binary '\0\0\0\0\0\0\0\0\0\0\0\0\04@\0\0\0\0\0\0^@'),(6,22,'user6','user6',20,120,_binary '\0\0\0\0\0\0\0\0\0\0\0\0\04@\0\0\0\0\0\0^@');
+INSERT INTO `shop` VALUES (1,17,'macdonald','fast food',24.7847,121,_binary '\0\0\0\0\0\0\0D‘ú\ã\ã\È8@ª\Óo@^@'),(2,18,'starbucks','coffee',24.8115,120.975,_binary '\0\0\0\0\0\0\0×€Y»\Ï8@\nü\ì\ëa>^@'),(3,19,'user3','user3',20,120,_binary '\0\0\0\0\0\0\0\0\0\0\0\0\04@\0\0\0\0\0\0^@'),(4,20,'user4','user4',20,120,_binary '\0\0\0\0\0\0\0\0\0\0\0\0\04@\0\0\0\0\0\0^@'),(5,21,'user5','user5',20,120,_binary '\0\0\0\0\0\0\0\0\0\0\0\0\04@\0\0\0\0\0\0^@'),(6,22,'user6','user6',20,120,_binary '\0\0\0\0\0\0\0\0\0\0\0\0\04@\0\0\0\0\0\0^@'),(7,23,'Kentucky Fried Chicken','fast food',24.7996,121.012,_binary '\0\0\0\0\0\0\0§\ÅdÍ°\Ì8@QNûŸ\È@^@');
 /*!40000 ALTER TABLE `shop` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -56,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-26 16:05:35
+-- Dump completed on 2022-06-02  0:19:24
