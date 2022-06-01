@@ -24,9 +24,9 @@ DROP TABLE IF EXISTS `orders`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `orders` (
   `oid` int NOT NULL AUTO_INCREMENT,
-  `status` varchar(10) NOT NULL,
-  `start` varchar(16) NOT NULL,
-  `end` varchar(16) NOT NULL,
+  `status` varchar(255) DEFAULT NULL,
+  `start` varchar(255) DEFAULT NULL,
+  `end` varchar(255) DEFAULT NULL,
   `distance` float DEFAULT NULL,
   `total` int DEFAULT NULL,
   `type` varchar(255) NOT NULL,
@@ -58,4 +58,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-06-02  0:03:51
+-- Dump completed on 2022-06-02  0:34:33
