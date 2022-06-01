@@ -99,8 +99,6 @@ def register():
                     error = 'invalid longitude format'
             except ValueError:
                 error = 'wrong latitude/longtitude format'
-        
-        
             
         cursor.execute("select MAX(uid) from user")
         maxuid = cursor.fetchone()[0]
@@ -181,6 +179,7 @@ def main():
             'latitude': info[4],
             'wallet': info[5]
         }
+        session['money'] = info[5]
         cursor.execute("select shopname, shoptype, latitude, longitude, sid from shop where uid = %s", (uid, ))
         res = cursor.fetchall()
         if len(res) > 0:
@@ -343,45 +342,102 @@ def openMenu():
         retList.append(itemDict)
     return jsonify(retList)
 
-@app.route('/order',methods=['POST'])
-def order():
-    uid = session['uid']
-    cursor.execute("""select longitude,latitude from user where uid=%s """, (uid,))
-    userLocation = cursor.fetchone()
-    longitude = userLocation[0]
-    latitude = userLocation[1]
-    sid = session['sid']
-    cursor.execute("""select ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where sid=%s """, (longitude,latitude,sid,))
-    distance = cursor.fetchone()[0]
-    cursor.execute("""select price,quantity,name from item where sid=%s """, (sid,))
-    itemList = cursor.fetchall()
-    subtotal = 0
-    orderList = list()
-    errorList = list()
-    for i,item in enumerate(itemList):
+@app.route('/validateQuantity', methods=['POST'])
+def validateQuantity():
+    result = dict()
+    length = request.form.get('length')
+    for i in range(int(length)):
         num = request.form.get(str(i+1))
-        if num == '':
-            num = 0
-        orderList.append(num)
-        if int(orderList[i]) > item[1]:
-            errorList.append(item[2])
-        subtotal += int(orderList[i])*item[0]
-    if len(errorList) != 0:
-        string = 'Order Quantity > Shop Quantity  --> '
-        for error in errorList:
-            string +=  error + ' | '
-        string = string[0:len(string)-2]
-        flash(string,category='danger')
-        return redirect(url_for('main'))
+        try:
+            if num != '' :
+                if int(num) <= 0: 
+                    result['nameResult'] = 'Order Quantity Format Error'
+                    result['error'] = True
+                    return jsonify(result)
+        except:
+            result['nameResult'] = 'Order Quantity Format Error'
+            result['error'] = True
+            return jsonify(result)
+    return jsonify(result)
+
+@app.route('/calculatePrice',methods=['POST'])
+def calculatePrice():
+    uid = session['uid']
+    sid = session['sid']
     type = request.form.get('type')
-    deliveryFee = 0
     if type == 'Delivery':
+        cursor.execute("""select longitude,latitude from user where uid=%s """, (uid,))
+        userLocation = cursor.fetchone()
+        longitude = userLocation[0]
+        latitude = userLocation[1]
+        cursor.execute("""select ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where sid=%s """, (longitude,latitude,sid,))
+        distance = cursor.fetchone()[0]
         if distance <= 5000:
             deliveryFee = 20 
         elif distance > 50000:
             deliveryFee = 50
         else:
             deliveryFee = 35
+    else:
+        deliveryFee = 0
+    cursor.execute("""select image,name,price,quantity from item where sid=%s """, (sid,))
+    itemList = cursor.fetchall()
+    subtotal = 0
+    orderDict = dict()
+    orderDict['length'] = 0
+    for i,item in enumerate(itemList):
+        num = request.form.get(str(i+1))
+        if num != '':
+            subtotal += int(num)*int(item[2])
+            orderList = list()
+            orderList.append(i+1)
+            orderList.append(item[0]) 
+            orderList.append(item[1]) 
+            orderList.append(item[2]) 
+            orderList.append(num)
+            orderDict[str(i+1)] = orderList
+            orderDict['length'] += 1 
+    orderDict['subtotal'] = subtotal
+    orderDict['delivery'] = deliveryFee
+    orderDict['total'] = subtotal + deliveryFee
+    return jsonify(orderDict)
+
+@app.route('/order',methods=['POST'])
+def order():
+    sid = session['sid']
+    print(sid)
+    cursor.execute("""select quantity,name from item where sid=%s """, (sid,))
+    itemList = cursor.fetchall()
+    money = session['money']
+    subtotal = 0
+    error = ''
+    orderList = list()
+    errorList = list()
+    for i,item in enumerate(itemList):
+        num = request.form.get(str(i+1))
+        try:
+            if num == '':
+                num = 0
+            elif int(num) <= 0:
+                flash("Order Quantity Format Error!",category='danger')
+                return redirect(url_for('main'))
+        except:
+            flash("Order Quantity Format Error!",category='danger')
+            return redirect(url_for('main'))
+        orderList.append(num)
+        if int(orderList[i]) > item[1]:
+            errorList.append(item[2])
+        subtotal += int(orderList[i])*item[0]
+    if len(errorList) != 0:
+        error = "Order Quantity > Shop Quantity  --> "
+        for e in errorList:
+            error +=  e + ' | '
+        error = error[0:len(error)-2]
+        flash(error,category='danger')
+        return redirect(url_for('main'))
+    
+    if money < (deliveryFee+subtotal):
+        flash("Insufficient Balance",category='danger')
     return redirect(url_for('main'))
 
 # shop
