@@ -375,6 +375,7 @@ def calculatePrice():
     uid = session['uid']
     sid = session['sid']
     type = request.form.get('type')
+    session['type'] = type
     if type == 'Delivery':
         cursor.execute("""select longitude,latitude from user where uid=%s """, (uid,))
         userLocation = cursor.fetchone()
@@ -382,9 +383,11 @@ def calculatePrice():
         latitude = userLocation[1]
         cursor.execute("""select ST_Distance_Sphere(point(%s,%s),point(longitude,latitude)),sid from shop where sid=%s """, (longitude,latitude,sid,))
         distance = cursor.fetchone()[0]
+        session['distance'] = distance
         if distance < 1000:
             deliveryFee = 10
         else:
+            session['distance'] = 0
             deliveryFee = round((distance/1000)*10)
     else:
         deliveryFee = 0
@@ -392,29 +395,33 @@ def calculatePrice():
     itemList = cursor.fetchall()
     subtotal = 0
     orderDict = dict()
-    orderDict['length'] = 0
+    length = 0
     for i,item in enumerate(itemList):
         num = request.form.get(str(i+1))
         if num != '':
             subtotal += int(num)*int(item[2])
             orderList = list()
-            orderList.append(i+1)
+            length += 1
+            orderList.append(length)
             orderList.append(item[0]) 
             orderList.append(item[1]) 
             orderList.append(item[2]) 
             orderList.append(num)
-            orderDict[str(i+1)] = orderList
-            orderDict['length'] += 1 
+            orderDict[str(length)] = orderList 
     orderDict['subtotal'] = subtotal
     orderDict['delivery'] = deliveryFee
     orderDict['total'] = subtotal + deliveryFee
+    orderDict['length'] = length
     session['total'] = subtotal + deliveryFee
+    print(orderDict)
     return jsonify(orderDict)
 
 @app.route('/order',methods=['POST'])
 def order():
     uid = session['uid']
     sid = session['sid']
+    type = session['type']
+    distance = session['distance']
     cursor.execute("""select shopname,uid from shop where sid=%s """, (sid,))
     info = cursor.fetchone()
     shopName = info[0]
@@ -446,14 +453,21 @@ def order():
     elif money < total:
         flash("Insufficient Balance",category='danger')
     else:
+        now = time.localtime()
+        Time = str(now[0])+'/'+str(now[1])+'/'+str(now[2])+' '+str(now[3]).zfill(2)+':'+str(now[4]).zfill(2)+':'+str(now[5]).zfill(2)
+        cursor.execute("insert into orders (status,start,distance,total,type,uid,sid) values ('Not finish',%s,%s,%s,%s,%s,%s)",(Time,distance,total,type,uid,sid,))
+        db.commit()
+        cursor.execute("select oid from orders where start=%s and distance=%s and total=%s and type=%s and uid=%s and sid=%s",(Time,distance,total,type,uid,sid,))
+        oid = cursor.fetchone()[0]
         for key,value in dic.items():
             cursor.execute("select quantity from item where iid = %s", (key,))
             q = cursor.fetchone()[0]
             q -= int(value)
             cursor.execute("update item set quantity = %s where iid = %s", (q,key, ))
             db.commit()
-        now = time.localtime()
-        Time = str(now[0])+'/'+str(now[1])+'/'+str(now[2])+' '+str(now[3]).zfill(2)+':'+str(now[4]).zfill(2)+':'+str(now[5]).zfill(2)
+            cursor.execute("insert into iteminorder (oid,iid,quantity) values (%s,%s,%s)",(oid,key,value,))
+            db.commit()
+        
         money -= total
         walletShop += total
         cursor.execute("update user set wallet = %s where uid = %s", (money,uid ))
@@ -464,6 +478,8 @@ def order():
         db.commit()
         cursor.execute("""insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)""",(uidShop, 'Receive', Time, name, '+'+str(total)))
         db.commit()
+        
+        
         flash("Successfully Order",category='success')
     return redirect(url_for('main'))
 
