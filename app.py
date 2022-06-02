@@ -146,6 +146,8 @@ def login():
 @app.route('/main', methods=['GET'])
 def main():
     uid = session.get('uid')
+    if uid is None:
+        return redirect('login')
     userShop = None
     userShopItems = list()
     if session.get('shopList') is not None:
