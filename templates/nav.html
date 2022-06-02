@@ -57,100 +57,7 @@
       
 
     <div class="tab-content">
-      <!-- MyOrder Filter -->
-      <div id="myOrder" class="tab-pane fade">
-        <form role="form" method="POST" action="{{ url_for('transactionRecord') }}"></form>
-        <div class="form-group">
-        <div class=" row  col-xs-8">
-          <label class="control-label col-sm-1" for="myOrderStatus">Status</label>
-          <div class="col-sm-5">
-            <select class="form-control" id="myOrderStatus" name="myOrderStatus">
-              <option>All</option>
-              <option>Finished</option>
-              <option>Not finish</option>
-              <option>Cancel</option>
-            </select>
-          </div>
-        </div>
-        </div>
-        <!-- Myorder Table -->
-        <div class="row">
-          <div class="  col-xs-8">
-            <table id="myorderTable" class="table" style=" margin-top: 15px;">
-              <thead>
-                <tr>
-                  <th scope="col">Order ID</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Start</th>
-                  <th scope="col">End</th>
-                  <th scope="col">Shop name</th>
-                  <th scope="col">Total Price</th>
-                  <th scope="col">Order Details</th>
-                  <th scope="col">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for orders in ordersList %}
-                <tr>
-                  <td>{{ orders.0 }}</td>
-                  <td>{{ orders.1 }}</td>
-                  <td>{{ orders.2 }}</td>
-                  <td>{{ orders.3 }}</td>
-                  <td>{{ orders.4 }}</td>
-                  <td>{{ orders.5 }}</td>
-                  <td><button type="button" class="btn btn-info" data-toggle="modal" data-target="#{{ orders.6 }}">
-                    Order Details
-                    </button></td>
-                    <!-- Modal Order-->
-                    <div class="modal fade" id="ordercheck"  data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                      <div class="modal-dialog">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">Order</h4>
-                          </div>
-                          <div class="modal-body">
-                            <div class="row">
-                              <div class="  col-xs-12">
-                                
-                                <table class="table"style=" margin-top: 15px;">
-                                <thead>
-                                  <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Picture</th>
-                                    <th scope="col">meal name</th>
-                                    <th scope="col">price</th>
-                                    <th scope="col">Order Quantity</th>
-                                  </tr>
-                                </thead>
-                                <tbody id="ordertbody"></tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="modal-footer">
-                            <p name='subtotal'></p>
-                            <p name='delivery'></p>
-                            <p name='total'></p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <!-- Modal End-->
-                    <td>
-                    <form role="form" method="POST" action="{{ url_for('cancelOrder') }}">
-                      <input type="hidden" name="itemId" value="{{ item.4 }}">
-                      <button type="submit" class="btn btn-danger">Cancel</button>
-                    </form>
-                    </td>
-                  </tr>
-                  {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </form>
-      </div>
+      
 
       <!-- Transaction Filter -->
       <div id="transaction" class="tab-pane fade ">
@@ -199,6 +106,58 @@
       </form>
       </div>
 
+      <!-- MyOrder Filter -->
+      <div id="myOrder" class="tab-pane fade">
+        <form role="form" method="POST" action="{{ url_for('myorderRecord') }}">
+          <div class="form-group">
+            <div class=" row  col-xs-8">
+              <label class="control-label col-sm-1" for="myOrderStatus">Status</label>
+              <div class="col-sm-5">
+                <select class="form-control" id="myOrderStatus" name="myOrderStatus" onchange="this.form.submit()">
+                  <option>-- select --</option>
+                  <option>All</option>
+                  <option>Finished</option>
+                  <option>Not finish</option>
+                  <option>Cancel</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- myOrder Table -->
+          <div class="row">
+            <div class="  col-xs-8">
+              <table id="myOrderTable" class="table" style=" margin-top: 15px;">
+                <thead>
+                  <tr>
+                    <th scope="col">Order ID</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Start</th>
+                    <th scope="col">End</th>
+                    <th scope="col">Shop name</th>
+                    <th scope="col">Total Price</th>
+                    <th scope="col">Order Details</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for orders in orderList %}
+                  <tr>
+                    <td>{{ orders.0 }}</td>
+                    <td>{{ orders.1 }}</td>
+                    <td>{{ orders.2 }}</td>
+                    <td>{{ orders.3 }}</td>
+                    <td>{{ orders.4 }}</td>
+                    <td>{{ orders.5 }}</td>
+                    <td><button type="button" class="btn btn-info" data-toggle="modal" data-target="#details">Order Details</button></td>
+                    <td><button type="button" class="btn btn-danger" >Cancel</button></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </form>
+      </div>
       <!-- Home -->
       <div id="home" class="tab-pane fade in active">
         <h3>Profile</h3>

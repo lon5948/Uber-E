@@ -4,7 +4,7 @@ from flask import Flask, render_template, session, request, jsonify, flash, redi
 from flask_paginate import Pagination
 from werkzeug.utils import secure_filename
 import mysql.connector
-import time
+import time,datetime
 
 UPLOAD_FOLDER = 'static\\Picture'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -163,6 +163,10 @@ def main():
         recordList = session.get('recordList')
     else:
         recordList = list()
+    if session.get('orderList') is not None:
+        orderList = session.get('orderList')
+    else:
+        orderList = list()
     
     def get_shop(offset, per_page):
         return shopList[offset: offset + per_page]
@@ -205,7 +209,7 @@ def main():
     total = len(shopList)
     pagination_shop = get_shop(offset, per_page)
     pagination = Pagination(page=page, per_page=per_page, total=total,css_framework='bootstrap4')
-    return render_template('nav.html' ,page=page, per_page=per_page, pagination=pagination, userInfo=userInfo, recordList=recordList, userShop=userShop, shops=pagination_shop, userShopItems=userShopItems, itemList=itemList)
+    return render_template('nav.html' ,page=page, per_page=per_page, pagination=pagination, userInfo=userInfo, recordList=recordList, orderList=orderList, userShop=userShop, shops=pagination_shop, userShopItems=userShopItems, itemList=itemList)
 
 # home
 @app.route('/editLocation', methods=['POST'])
@@ -236,8 +240,7 @@ def addMoney():
             flash("Value Format Error!", category='danger')
         else:
             wallet += int(value)
-            now = time.localtime()
-            Time = str(now[0])+'/'+str(now[1])+'/'+str(now[2])+' '+str(now[3]).zfill(2)+':'+str(now[4]).zfill(2)+':'+str(now[5]).zfill(2)
+            Time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
             cursor.execute(" update user set wallet = %s where uid = %s ", (wallet, uid, ))
             db.commit()
             cursor.execute("insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)",(uid, 'Recharge', Time, info[0], '+'+value,))
@@ -453,8 +456,7 @@ def order():
     elif money < total:
         flash("Insufficient Balance",category='danger')
     else:
-        now = time.localtime()
-        Time = str(now[0])+'/'+str(now[1])+'/'+str(now[2])+' '+str(now[3]).zfill(2)+':'+str(now[4]).zfill(2)+':'+str(now[5]).zfill(2)
+        Time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         cursor.execute("insert into orders (status,start,distance,total,type,uid,sid) values ('Not finish',%s,%s,%s,%s,%s,%s)",(Time,distance,total,type,uid,sid,))
         db.commit()
         cursor.execute("select oid from orders where start=%s and distance=%s and total=%s and type=%s and uid=%s and sid=%s",(Time,distance,total,type,uid,sid,))
@@ -626,17 +628,26 @@ def deleteItem():
 @app.route('/myorderRecord',methods=['POST'])
 def myorderRecord():
     uid = session.get('uid')
-    status = request.form.get('myorderStatus')
+    status = request.form.get('myOrderStatus')
     if status == 'All':
-        cursor.execute("select oid,status,start,end,sid from orders where uid=%s",(uid,))
+        cursor.execute("select oid,status,start,end,sid,total from orders where uid=%s",(uid,))
     elif status == 'Finished':
-        cursor.execute("select oid,status,start,end,sid from orders where uid=%s and status=%s",(uid,'Finished',))
+        cursor.execute("select oid,status,start,end,sid,total from orders where uid=%s and status=%s",(uid,'Finished',))
     elif status == 'Not finish':
-        cursor.execute("select oid,status,start,end,sid from orders where uid=%s and status=%s",(uid,'Not finish',))
+        cursor.execute("select oid,status,start,end,sid,total from orders where uid=%s and status=%s",(uid,'Not finish',))
     elif status == 'Cancel':
-        cursor.execute("select oid,status,start,end,sid from orders where uid=%s and status=%s",(uid,'Cancel',))   
+        cursor.execute("select oid,status,start,end,sid,total from orders where uid=%s and status=%s",(uid,'Cancel',))   
     tempList = cursor.fetchall()
     print(tempList)
+    orderList = []
+    for temp in tempList:
+        sid = temp[4]
+        cursor.execute("select shopname from shop where sid=%s",(sid,))
+        shopname = cursor.fetchone()[0]
+        print(shopname)
+        tup = (temp[0],temp[1],temp[2],temp[3],shopname,temp[5])
+        orderList.append(tup)
+    session['orderList']=orderList
     return redirect(url_for('main'))
 
 #cancel order
