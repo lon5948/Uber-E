@@ -604,6 +604,28 @@ def deleteItem():
     flash('Delete Success.', category='success')
     return redirect(url_for('main'))
 
+#myorder record
+@app.route('/myorderRecord',methods=['POST'])
+def myorderRecord():
+    uid = session.get('uid')
+    status = request.form.get('myorderStatus')
+    if status == 'All':
+        cursor.execute("select oid,status,start,end,sid from orders where uid=%s",(uid,))
+    elif status == 'Finished':
+        cursor.execute("select oid,status,start,end,sid from orders where uid=%s and status=%s",(uid,'Finished',))
+    elif status == 'Not finish':
+        cursor.execute("select oid,status,start,end,sid from orders where uid=%s and status=%s",(uid,'Not finish',))
+    elif status == 'Cancel':
+        cursor.execute("select oid,status,start,end,sid from orders where uid=%s and status=%s",(uid,'Cancel',))   
+    tempList = cursor.fetchall()
+    print(tempList)
+    return redirect(url_for('main'))
+
+#cancel order
+@app.route('/cancelOrder',methods=['POST'])
+def cancelOrder():
+    return redirect(url_for('main'))
+
 # transaction record
 @app.route('/transactionRecord', methods=['POST'])
 def transactionRecord():
