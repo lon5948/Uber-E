@@ -51,7 +51,7 @@
       <li ><a href="#menu1" data-toggle="tab">shop</a></li>
       <li ><a href="#myOrder" data-toggle="tab">MyOrder</a></li>
       <li ><a href="#shopOrder" data-toggle="tab">Shop Order</a></li>
-      <li ><a href="#transaction" data-toggle="tab">Transaction Record</a></li>
+      <li ><a href="#transaction" data-toggle="tab" >Transaction Record</a></li>
     </ul>
     
       
@@ -151,12 +151,14 @@
       </div>
 
       <!-- Transaction Filter -->
-      <div id="transaction" class="tab-pane fade">
+      <div id="transaction" class="tab-pane fade ">
+        <form role="form" method="POST" action="{{ url_for('transactionRecord') }}">
         <div class="form-group">
         <div class=" row  col-xs-8">
           <label class="control-label col-sm-1" for="transactionAction">Action</label>
-          <div class="col-sm-5">
-            <select class="form-control" id="transactionAction" name="transactionAction">
+          <div class="col-sm-4">
+            <select class="form-control" id="transactionAction" name="transactionAction" onchange="this.form.submit()">
+              <option>-- select --</option>
               <option>All</option>
               <option>Payment</option>
               <option>Receive</option>
@@ -168,7 +170,6 @@
         <!-- Transaction Table -->
         <div class="row">
           <div class="  col-xs-8">
-            <form role="form" method="POST" action="{{ url_for('transactionRecord') }}">
             <table id="transTable" class="table" style=" margin-top: 15px;">
               <thead>
                 <tr>
@@ -191,9 +192,9 @@
                 {% endfor %}
               </tbody>
             </table>
-            </form>
           </div>
         </div>
+      </form>
       </div>
 
       <!-- Home -->

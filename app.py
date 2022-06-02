@@ -146,6 +146,8 @@ def login():
 @app.route('/main', methods=['GET'])
 def main():
     uid = session.get('uid')
+    if uid is None:
+        return redirect('login')
     userShop = None
     userShopItems = list()
     if session.get('shopList') is not None:
@@ -632,13 +634,13 @@ def transactionRecord():
     uid = session.get('uid')
     action = request.form.get('transactionAction')
     if action == 'All':
-        cursor.execute("""select * from record""")
+        cursor.execute("""select * from record where uid=%s """,(uid,))
     elif action == 'Payment':
-        cursor.execute("""select * from record where action=%s """, ('Payment',))
+        cursor.execute("""select * from record where action=%s and uid=%s """, ('Payment',uid,))
     elif action == 'Receive':
-        cursor.execute("""select * from record where action=%s """, ('Receive',))
+        cursor.execute("""select * from record where action=%s and uid=%s """, ('Receive',uid,))
     elif action == 'Recharge':
-        cursor.execute("""select * from record where action=%s """, ('Recharge',))
+        cursor.execute("""select * from record where action=%s and uid=%s """, ('Recharge',uid,))
     recordList = cursor.fetchall()
     session['recordList'] = recordList
     return redirect(url_for('main'))
