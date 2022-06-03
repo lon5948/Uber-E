@@ -805,7 +805,7 @@ def cancelOrder():
     cursor.execute("update user set wallet = wallet-%s where uid = %s",(totalEarn,uid,))
     cursor.executemany(
         """
-        INSERT INTO record (action, time, trader, amountChange, uid) VALUES ("Receive", %s, %s, %s, %s);
+        INSERT INTO record (action, time, trader, amountChange, uid) VALUES ("Payment", %s, %s, %s, %s);
         """, [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),a[2],'{:+d}'.format(a[0]), a[1]) for a in refunds]
     )
     db.commit()
