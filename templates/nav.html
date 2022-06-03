@@ -57,24 +57,27 @@
     
     <div class="tab-content">
       <!-- MyOrder Filter -->
-      <div id="myOrder" class="tab-pane fade">
-        <form role="form" method="POST" action="{{ url_for('myorderRecord') }}">
+      <div id="myOrder" class="tab-pane fade {% if defaultPage == 'myOrder' %} active in {% endif %}">
+        
           <div class="form-group">
             <div class=" row  col-xs-8">
               <label class="control-label col-sm-1" for="myOrderStatus">Status</label>
               <div class="col-sm-5">
-                <select class="form-control" id="myOrderStatus" name="myOrderStatus" onchange="this.form.submit()">
-                  <option>All</option>
-                  <option>Finished</option>
-                  <option>Not finish</option>
-                  <option>Cancel</option>
-                </select>
+                <form role="form" method="POST" action="{{ url_for('myorderRecord') }}">
+                  <select class="form-control" id="myOrderStatus" name="myOrderStatus" onchange="this.form.submit()">
+                    <option {% if myOrderStatus == 'All'%} selected {% endif %}>All</option>
+                    <option {% if myOrderStatus == 'Finished'%} selected {% endif %}>Finished</option>
+                    <option {% if myOrderStatus == 'Not finish'%} selected {% endif %}>Not finish</option>
+                    <option {% if myOrderStatus == 'Cancel'%} selected {% endif %}>Cancel</option>
+                  </select>
+                </form>
               </div>
             </div>
           </div>
           <!-- myOrder Table -->
           <div class="row">
             <div class="  col-xs-8">
+              <form role="form" method="POST" action="{{ url_for('cancelOrder') }}">
               <table id="myOrderTable" class="table" style=" margin-top: 15px;">
                 <thead>
                   <tr>
@@ -92,68 +95,75 @@
                   {% for orders in orderList %}
                   <tr>
                     <td>{{ orders.0 }}</td>
+                    <th>
+                      {% if orders.1 == 'Not finish' %}
+                      <input type="checkbox" name="myOrderSelected" value="{{ orders.0 }}">
+                      {% endif %}
+                    </th>
                     <td>{{ orders.1 }}</td>
                     <td>{{ orders.2 }}</td>
                     <td>{{ orders.3 }}</td>
                     <td>{{ orders.4 }}</td>
                     <td>{{ orders.5 }}</td>
-                    <td><button type="button" class="btn btn-info" data-toggle="modal" data-target="#details">Order Details</button></td>
-                    <td><button type="button" class="btn btn-danger" >Cancel</button></td>
+                    
+                    <td><button type="button" class="btn btn-info" data-toggle="modal" data-target="#orderID{{orders.0}}">Order Details</button></td>
                   </tr>
                   {% endfor %}
                 </tbody>
               </table>
+              <button type="submit" class="btn btn-danger">Cancel</button>
+            </form>
             </div>
           </div>
-        </form>
       </div>
-
-      <!-- Transaction Filter -->
-      <div id="transaction" class="tab-pane fade {% if defaultPage == 'transaction' %} active in {% endif %}">
-        <form role="form" method="POST" action="{{ url_for('transactionRecord') }}">
-        <div class="form-group">
-        <div class=" row  col-xs-8">
-          <label class="control-label col-sm-1" for="transactionAction">Action</label>
-          <div class="col-sm-4">
-            <select class="form-control" id="transactionAction" name="transactionAction" onchange="this.form.submit()">
-              <option>-</option>
-              <option>All</option>
-              <option>Payment</option>
-              <option>Receive</option>
-              <option>Recharge</option>
-            </select>
+      <!-- Modal -->
+      {% for orders in orderList %}
+      <div class="modal fade" id="orderID{{orders.0}}" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"> Order </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
           </div>
-        </div>
-        </div>
-        <!-- Transaction Table -->
-        <div class="row">
-          <div class="  col-xs-8">
-            <table id="transTable" class="table" style=" margin-top: 15px;">
-              <thead>
+            <div class="modal-body">
+              <table class="table table-striped">
+                <thead>
                 <tr>
-                  <th scope="col">Record ID</th>
-                  <th scope="col">Action</th>
-                  <th scope="col">Time</th>
-                  <th scope="col">Trader</th>
-                  <th scope="col">Amount Change</th>
+                  <th>#</th>
+                  <th>Picture</th>
+                  <th>Meal Name</th>
+                  <th>Price</th>
+                  <th>Order Quantity</th>
                 </tr>
-              </thead>
-              <tbody>
-                {% for record in recordList %}
+                </thead>
+                <tbody>
+                {% for it in orders.6 %}
                 <tr>
-                  <td>{{ record.0 }}</td>
-                  <td>{{ record.1 }}</td>
-                  <td>{{ record.2 }}</td>
-                  <td>{{ record.3 }}</td>
-                  <td>{{ record.4 }}</td>
+                  <td>HA</td>
+                  <td>{{ loop.index }}</td>
+                  <td><img src="{{ url_for('static', filename='Picture/' + it.0) }}" width="100" height="100" alt="{{ it.3 }}}"></td>
+                  <td>{{ it.1 }}</td>
+                  <td>{{ it.2 }}</td>
+                  <td>{{ it.3 }}</td>
                 </tr>
                 {% endfor %}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <h5>Subtotal: ${{ orders.7 }}</h5>
+              <h6>Delivery fee: ${{ orders.8 }}</h6>
+              <h5>Total Price: ${{ orders.5 }}</h5>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" name="Close">Close</button>
+            </div>
           </div>
         </div>
-      </form>
       </div>
+      {% endfor %}
+      
+
       <!-- shop Order -->
       <div id="shopOrder"  class="tab-pane fade {% if defaultPage == 'shopOrder' %} active in {% endif %}">
         <div class="form-group">
@@ -164,7 +174,7 @@
             <select class="form-control" id="shopOrderStatus" name="shopOrderStatus" onchange="this.form.submit()">
               <option {% if shopOrderStatus == 'All'%} selected {% endif %}>All</option>
               <option {% if shopOrderStatus == 'Finished'%} selected {% endif %}>Finished</option>
-              <option {% if shopOrderStatus == 'Not Finish'%} selected {% endif %}>Not Finish</option>
+              <option {% if shopOrderStatus == 'Not finish'%} selected {% endif %}>Not finish</option>
               <option {% if shopOrderStatus == 'Cancel'%} selected {% endif %}>Cancel</option>
             </select>
             </form>
@@ -186,7 +196,6 @@
                   <th scope="col">Customer name</th>
                   <th scope="col">Total Price</th>
                   <th scope="col">Order Details</th>
-                  <th scope="col">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -194,7 +203,7 @@
                 <tr>
                   <th scope="row">{{ loop.index }}</th>
                   <th>
-                    {% if Order.status == 'Not Finish' %}
+                    {% if Order.status == 'Not finish' %}
                     <input type="checkbox" name="shopOrderSelected" value="{{ Order.oid }}">
                     {% endif %}
                   </th>
@@ -204,12 +213,12 @@
                   <td>{{ Order.userName }}</td>
                   <td>{{ Order.total }}</td>
                   <td><button type="button" class="btn btn-info" data-toggle="modal" data-target="#Order{{ Order.oid }}">Order Details</button></td>
-                  <td><button type="submit" class="btn btn-success">Done</button>
-                      <button type="submit" class="btn btn-danger" formaction="{{ url_for('shopOrderCancel') }}">Cancel</button></td>>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
+            <button type="submit" class="btn btn-success">Done</button>
+            <button type="submit" class="btn btn-danger" formaction="{{ url_for('shopOrderCancel') }}">Cancel</button>
             </form>
           </div>
         </div>
@@ -259,6 +268,53 @@
         </div>
       </div>
       {% endfor %}
+
+      <!-- Transaction Filter -->
+      <div id="transaction" class="tab-pane fade {% if defaultPage == 'transaction' %} active in {% endif %}">
+        <form role="form" method="POST" action="{{ url_for('transactionRecord') }}">
+        <div class="form-group">
+        <div class=" row  col-xs-8">
+          <label class="control-label col-sm-1" for="transactionAction">Action</label>
+          <div class="col-sm-4">
+            <select class="form-control" id="transactionAction" name="transactionAction" onchange="this.form.submit()">
+              <option>-</option>
+              <option>All</option>
+              <option>Payment</option>
+              <option>Receive</option>
+              <option>Recharge</option>
+            </select>
+          </div>
+        </div>
+        </div>
+        <!-- Transaction Table -->
+        <div class="row">
+          <div class="col-xs-8">
+            <table id="transTable" class="table" style=" margin-top: 15px;">
+              <thead>
+                <tr>
+                  <th scope="col">Record ID</th>
+                  <th scope="col">Action</th>
+                  <th scope="col">Time</th>
+                  <th scope="col">Trader</th>
+                  <th scope="col">Amount Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in recordList %}
+                <tr>
+                  <td>{{ record.0 }}</td>
+                  <td>{{ record.1 }}</td>
+                  <td>{{ record.2 }}</td>
+                  <td>{{ record.3 }}</td>
+                  <td>{{ record.4 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </form>
+      </div>
 
       <!-- Home -->
       <div id="home"  class="tab-pane fade {% if defaultPage == 'home' %} active in {% endif %}">
