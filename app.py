@@ -4,6 +4,7 @@ from flask import Flask, render_template, session, request, jsonify, flash, redi
 from flask_paginate import Pagination
 from werkzeug.utils import secure_filename
 import mysql.connector
+import datetime
 import time
 
 UPLOAD_FOLDER = 'static\\Picture'
@@ -39,6 +40,7 @@ def hello():
 
 # index
 
+
 @app.route('/validateUser', methods=['POST'])
 def validateUser():
     Account = request.form.get('Account')
@@ -55,6 +57,7 @@ def validateUser():
         result['nameResult'] = ''
         result['error'] = False
     return jsonify(result)
+
 
 @app.route('/register', methods=('GET', 'POST'))
 def register():
@@ -138,16 +141,53 @@ def login():
         uid = session['uid']
         if uid is not None:
             session.pop('uid')
-    except:
-        KeyError
+    except KeyError:
+        _ = False
     return render_template('index.html')
+
 
 # main
 @app.route('/main', methods=['GET'])
 def main():
+    def getShopOrder(s):
+        ss = session.get('shopOrderStatus', 'All')
+        if ss == "All":
+            cursor.execute("""
+            select orders.oid, status, start, end, user.name, type, subtotal, delivery_fee, total
+            from orders natural join user
+            where sid = %s
+            """, (s, ))
+        else:
+            cursor.execute("""
+            select orders.oid, status, start, end, user.name, type, subtotal, delivery_fee, total
+            from orders natural join user
+            where sid = %s and status = %s
+            """, (s, ss, ))
+        t_order = cursor.fetchall()
+        re = list()
+        for o in t_order:
+            cursor.execute("""
+            select image, name, price, quantity from iteminorder
+            where oid = %s
+            """, (o[0], ))
+            r = dict()
+            r["oid"] = o[0]
+            r["status"] = o[1]
+            r["start"] = o[2]
+            r["end"] = o[3] if o[3] is not None else ''
+            r["userName"] = o[4]
+            r["type"] = o[5]
+            r["subtotal"] = o[6]
+            r["d_fee"] = o[7]
+            r["total"] = o[8]
+
+            r["orderItem"] = cursor.fetchall()
+            re.append(r)
+        return re
     uid = session.get('uid')
-    if uid is None:
-        return redirect('login')
+    sid = None
+    sss = session.get('shopOrderStatus', 'All')
+    defaultPage = session.get('defaultPage', 'home')
     userShop = None
     userShopItems = list()
     if session.get('shopList') is not None:
@@ -167,6 +207,7 @@ def main():
     def get_shop(offset, per_page):
         return shopList[offset: offset + per_page]
 
+    userInfo = dict()
     if uid is not None:
         cursor.execute("select account,name,phone,longitude,latitude,wallet from user where uid = %s", (uid, ))
         info = cursor.fetchone()
@@ -205,7 +246,11 @@ def main():
     total = len(shopList)
     pagination_shop = get_shop(offset, per_page)
     pagination = Pagination(page=page, per_page=per_page, total=total,css_framework='bootstrap4')
-    return render_template('nav.html' ,page=page, per_page=per_page, pagination=pagination, userInfo=userInfo, recordList=recordList, userShop=userShop, shops=pagination_shop, userShopItems=userShopItems, itemList=itemList)
+    return render_template(
+        'nav.html', page=page, per_page=per_page, pagination=pagination, userInfo=userInfo,
+        recordList=recordList, userShop=userShop, shops=pagination_shop, userShopItems=userShopItems, itemList=itemList,
+        shopOrderList=getShopOrder(sid), shopOrderStatus=sss, defaultPage=defaultPage
+    )
 
 # home
 @app.route('/editLocation', methods=['POST'])
@@ -222,6 +267,7 @@ def editLocation():
             flash(" Successfully Update ! ", category='success')
     except:
         flash(" Format Error ! ", category='danger')
+    session['defaultPage'] = 'home'
     return redirect(url_for('main'))
 
 @app.route('/addMoney', methods=['POST'])
@@ -245,6 +291,7 @@ def addMoney():
             flash(" Successfully Add Money! ", category='success')
     except:
         flash("Value Format Error!", category='danger')
+    session['defaultPage'] = 'home'
     return redirect(url_for('main'))
 
 @app.route('/search', methods=['POST'])
@@ -333,6 +380,7 @@ def search():
         shop = tuple(shop)
         shopList[index] = shop
     session['shopList'] = shopList
+    session['defaultPage'] = 'home'
     return redirect(url_for('main'))
 
 @app.route('/openMenu',methods=['POST'])
@@ -359,7 +407,7 @@ def validateQuantity():
     for i in range(int(length)):
         num = request.form.get(str(i+1))
         try:
-            if num != '' :
+            if num != '':
                 if int(num) <= 0: 
                     result['nameResult'] = 'Order Quantity Format Error'
                     result['error'] = True
@@ -453,7 +501,7 @@ def order():
             cursor.execute("update item set quantity = %s where iid = %s", (q,key, ))
             db.commit()
         now = time.localtime()
-        Time = str(now[0])+'/'+str(now[1])+'/'+str(now[2])+' '+str(now[3]).zfill(2)+':'+str(now[4]).zfill(2)+':'+str(now[5]).zfill(2)
+        Time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M")
         money -= total
         walletShop += total
         cursor.execute("update user set wallet = %s where uid = %s", (money,uid ))
@@ -465,6 +513,7 @@ def order():
         cursor.execute("""insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)""",(uidShop, 'Receive', Time, name, '+'+str(total)))
         db.commit()
         flash("Successfully Order",category='success')
+    session['defaultPage'] = 'home'
     return redirect(url_for('main'))
 
 # shop
@@ -516,6 +565,7 @@ def registerShop():
                        , (uid, shopName, shopType, latitude, longitude, f'POINT({latitude} {longitude})',))
         db.commit()
     flash("Successfully Registered.", category='success')
+    session['defaultPage'] = 'menu1'
     return redirect(url_for('main'))
 
 
@@ -568,6 +618,7 @@ def registerItem():
                    (sid, itemName, itemQuantity, itemPrice, fileName))
     db.commit()
     flash("Add success!", category='success')
+    session['defaultPage'] = 'menu1'
     return redirect(url_for('main'))
 
 
@@ -592,18 +643,17 @@ def updateItem():
         flash('Update Error! Input is Empty.', category='danger')
     else:
         flash('Update Error! Input format Error.', category='danger')
+    session['defaultPage'] = 'menu1'
     return redirect(url_for('main'))
 
 
 @app.route('/deleteItem', methods=['POST'])
 def deleteItem():
     itemId = request.form.get('itemId')
-    cursor.execute("SELECT image FROM item where iid = %s", (itemId, ))
-    fileName = cursor.fetchall()[0][0]
     cursor.execute("DELETE FROM item where iid = %s", (itemId, ))
-    os.remove(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'], fileName))
     db.commit()
     flash('Delete Success.', category='success')
+    session['defaultPage'] = 'menu1'
     return redirect(url_for('main'))
 
 # transaction record
@@ -621,7 +671,66 @@ def transactionRecord():
         cursor.execute("""select * from record where action=%s and uid=%s """, ('Recharge',uid,))
     recordList = cursor.fetchall()
     session['recordList'] = recordList
+    session['defaultPage'] = 'transaction'
     return redirect(url_for('main'))
+
+
+#shopOrder
+@app.route('/shopOrder', methods=['POST'])
+def shopOrder():
+    status = request.form.get('shopOrderStatus')
+    session['shopOrderStatus'] = status
+    session['defaultPage'] = 'shopOrder'
+    return redirect(url_for('main'))
+
+
+@app.route('/shopOrderDone', methods=['POST'])
+def shopOrderDone():
+    selected = request.form.getlist("shopOrderSelected")
+    session['defaultPage'] = 'shopOrder'
+    if len(selected) == 0:
+        flash('Nothing selected!', category='danger')
+        return redirect(url_for('main'))
+    cursor.executemany(
+        """UPDATE orders SET status = 'Finished', end = %s where oid = %s""",
+        [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M"), _) for _ in selected]
+    )
+    db.commit()
+    flash('Updated to Done!', category='success')
+    return redirect(url_for('main'))
+
+
+@app.route('/shopOrderCancel', methods=['POST'])
+def shopOrderCancel():
+    session['defaultPage'] = 'shopOrder'
+    selected = request.form.getlist("shopOrderSelected")
+    if len(selected) == 0:
+        flash('Nothing selected!', category='danger')
+        return redirect(url_for('main'))
+    cursor.execute("SELECT shopname from shop where uid = %s", (session.get('uid'), ))
+    sn = cursor.fetchall()[0][0]
+    cursor.executemany(
+        """UPDATE orders SET status = 'Cancel', end = %s where oid = %s""",
+        [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M"), _) for _ in selected]
+    )
+    cursor.execute(
+        """SELECT total, uid from orders where oid IN ({})""".format(','.join(selected))
+    )
+    refunds = cursor.fetchall()
+    cursor.executemany(
+        """
+        UPDATE user SET wallet = wallet + %s WHERE uid = %s
+        """, refunds
+    )
+    cursor.executemany(
+        """
+        INSERT INTO record (action, time, trader, amountChange, uid) VALUES ("Receive", %s, %s, %s, %s);
+        """, [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M"), sn, '{:+d}'.format(a[0]), a[1]) for a in refunds]
+    )
+    db.commit()
+    flash('Updated to Done!', category='success')
+    return redirect(url_for('main'))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
