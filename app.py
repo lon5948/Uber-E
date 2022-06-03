@@ -620,7 +620,6 @@ def registerItem():
     session['defaultPage'] = 'menu1'
     return redirect(url_for('main'))
 
-
 @app.route('/updateItem', methods=['POST'])
 def updateItem():
     def check_num(x):
