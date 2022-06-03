@@ -785,6 +785,8 @@ def cancelOrder():
         flash('Nothing selected!', category='danger')
         return redirect(url_for('main'))
     uid = session.get('uid')
+    cursor.execute("select name from user where uid=%s",(uid,))
+    name = cursor.fetchone()[0]
     cursor.executemany(
         """UPDATE orders SET status = 'Cancel', end = %s where oid = %s""",
         [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"), _) for _ in selected]
@@ -794,20 +796,25 @@ def cancelOrder():
     )
     refunds = cursor.fetchall()
     walletUID = [[a[0],a[1]] for a in refunds]
+    #update shop
     cursor.executemany(
         """
         UPDATE user SET wallet = wallet - %s WHERE uid = %s
         """, walletUID
     )
+    cursor.executemany(
+        """
+        INSERT INTO record (action, time, trader, amountChange, uid) VALUES ("Payment", %s, %s, %s, %s);
+        """, [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),name,'{:+d}'.format(a[0]), a[1]) for a in refunds]
+    )
+    #update user
     totalEarn=0
     for refund in refunds:
         totalEarn+=refund[0]
     cursor.execute("update user set wallet = wallet-%s where uid = %s",(totalEarn,uid,))
-    cursor.executemany(
-        """
-        INSERT INTO record (action, time, trader, amountChange, uid) VALUES ("Payment", %s, %s, %s, %s);
-        """, [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),a[2],'{:+d}'.format(a[0]), a[1]) for a in refunds]
-    )
+    cursor.executemany("""insert into record (action, time, trader, amountChange, uid) values ("Receive",%s,%s,%s,%s);""",
+    [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),a[2],'{:+d}'.format(a[0]), uid) for a in refunds])
+    
     db.commit()
     flash('Successfully Cancel!', category='success')
     return redirect(url_for('main'))
