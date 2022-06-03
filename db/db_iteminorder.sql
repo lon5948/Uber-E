@@ -26,6 +26,9 @@ CREATE TABLE `iteminorder` (
   `oid` int NOT NULL,
   `iid` int NOT NULL,
   `quantity` int DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `price` int DEFAULT NULL,
+  `image` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`oid`,`iid`),
   KEY `iid` (`iid`),
   CONSTRAINT `iteminorder_ibfk_1` FOREIGN KEY (`oid`) REFERENCES `orders` (`oid`),
@@ -51,4 +54,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-06-02  0:34:33
+-- Dump completed on 2022-06-03 12:48:15

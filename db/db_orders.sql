@@ -28,6 +28,8 @@ CREATE TABLE `orders` (
   `start` varchar(255) DEFAULT NULL,
   `end` varchar(255) DEFAULT NULL,
   `distance` float DEFAULT NULL,
+  `subtotal` int DEFAULT NULL,
+  `delivery_fee` int DEFAULT NULL,
   `total` int DEFAULT NULL,
   `type` varchar(255) NOT NULL,
   `uid` int DEFAULT NULL,
@@ -58,4 +60,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-06-02  0:34:33
+-- Dump completed on 2022-06-03 12:48:14

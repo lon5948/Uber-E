@@ -65,7 +65,7 @@
           <label class="control-label col-sm-1" for="transactionAction">Action</label>
           <div class="col-sm-4">
             <select class="form-control" id="transactionAction" name="transactionAction" onchange="this.form.submit()">
-              <option>-- select --</option>
+              <option>-</option>
               <option>All</option>
               <option>Payment</option>
               <option>Receive</option>
@@ -135,6 +135,7 @@
                   <th scope="col">Customer name</th>
                   <th scope="col">Total Price</th>
                   <th scope="col">Order Details</th>
+                  <th scope="col">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -152,12 +153,12 @@
                   <td>{{ Order.userName }}</td>
                   <td>{{ Order.total }}</td>
                   <td><button type="button" class="btn btn-info" data-toggle="modal" data-target="#Order{{ Order.oid }}">Order Details</button></td>
+                  <td><button type="submit" class="btn btn-success">Done</button>
+                      <button type="submit" class="btn btn-danger" formaction="{{ url_for('shopOrderCancel') }}">Cancel</button></td>>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
-              <button type="submit" class="btn btn-success">Done</button>
-              <button type="submit" class="btn btn-danger" formaction="{{ url_for('shopOrderCancel') }}">Cancel</button>
             </form>
           </div>
         </div>

@@ -282,8 +282,7 @@ def addMoney():
             flash("Value Format Error!", category='danger')
         else:
             wallet += int(value)
-            now = time.localtime()
-            Time = str(now[0])+'/'+str(now[1])+'/'+str(now[2])+' '+str(now[3]).zfill(2)+':'+str(now[4]).zfill(2)+':'+str(now[5]).zfill(2)
+            Time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
             cursor.execute(" update user set wallet = %s where uid = %s ", (wallet, uid, ))
             db.commit()
             cursor.execute("insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)",(uid, 'Recharge', Time, info[0], '+'+value,))
@@ -494,14 +493,14 @@ def order():
     elif money < total:
         flash("Insufficient Balance",category='danger')
     else:
+
         for key,value in dic.items():
             cursor.execute("select quantity from item where iid = %s", (key,))
             q = cursor.fetchone()[0]
             q -= int(value)
             cursor.execute("update item set quantity = %s where iid = %s", (q,key, ))
             db.commit()
-        now = time.localtime()
-        Time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M")
+        Time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         money -= total
         walletShop += total
         cursor.execute("update user set wallet = %s where uid = %s", (money,uid ))
@@ -663,12 +662,8 @@ def transactionRecord():
     action = request.form.get('transactionAction')
     if action == 'All':
         cursor.execute("""select * from record where uid=%s """,(uid,))
-    elif action == 'Payment':
-        cursor.execute("""select * from record where action=%s and uid=%s """, ('Payment',uid,))
-    elif action == 'Receive':
-        cursor.execute("""select * from record where action=%s and uid=%s """, ('Receive',uid,))
-    elif action == 'Recharge':
-        cursor.execute("""select * from record where action=%s and uid=%s """, ('Recharge',uid,))
+    else:
+        cursor.execute("""select * from record where action=%s and uid=%s """, (action,uid,))
     recordList = cursor.fetchall()
     session['recordList'] = recordList
     session['defaultPage'] = 'transaction'
@@ -693,7 +688,7 @@ def shopOrderDone():
         return redirect(url_for('main'))
     cursor.executemany(
         """UPDATE orders SET status = 'Finished', end = %s where oid = %s""",
-        [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M"), _) for _ in selected]
+        [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"), _) for _ in selected]
     )
     db.commit()
     flash('Updated to Done!', category='success')
@@ -711,7 +706,7 @@ def shopOrderCancel():
     sn = cursor.fetchall()[0][0]
     cursor.executemany(
         """UPDATE orders SET status = 'Cancel', end = %s where oid = %s""",
-        [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M"), _) for _ in selected]
+        [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"), _) for _ in selected]
     )
     cursor.execute(
         """SELECT total, uid from orders where oid IN ({})""".format(','.join(selected))
@@ -725,7 +720,7 @@ def shopOrderCancel():
     cursor.executemany(
         """
         INSERT INTO record (action, time, trader, amountChange, uid) VALUES ("Receive", %s, %s, %s, %s);
-        """, [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M"), sn, '{:+d}'.format(a[0]), a[1]) for a in refunds]
+        """, [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"), sn, '{:+d}'.format(a[0]), a[1]) for a in refunds]
     )
     db.commit()
     flash('Updated to Done!', category='success')
