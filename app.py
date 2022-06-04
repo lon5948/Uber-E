@@ -274,6 +274,8 @@ def main():
     total = len(shopList)
     pagination_shop = get_shop(offset, per_page)
     pagination = Pagination(page=page, per_page=per_page, total=total,css_framework='bootstrap4')
+    print(mystatus)
+    print(orderList)
     return render_template(
         'nav.html', page=page, per_page=per_page, pagination=pagination, userInfo=userInfo,
         recordList=recordList, userShop=userShop, shops=pagination_shop, userShopItems=userShopItems, itemList=itemList,
