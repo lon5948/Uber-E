@@ -200,12 +200,12 @@
               <tbody>
                 {% for Order in shopOrderList %}
                 <tr>
-                  <th scope="row">{{ loop.index }}</th>
-                  <th>
+                  <td scope="row">{{ Order.oid }}</td>
+                  <td>
                     {% if Order.status == 'Not finish' %}
                     <input type="checkbox" name="shopOrderSelected" value="{{ Order.oid }}">
                     {% endif %}
-                  </th>
+                  </td>
                   <td>{{ Order.status }}</td>
                   <td>{{ Order.start }}</td>
                   <td>{{ Order.end }}</td>
@@ -276,11 +276,10 @@
           <label class="control-label col-sm-1" for="transactionAction">Action</label>
           <div class="col-sm-4">
             <select class="form-control" id="transactionAction" name="transactionAction" onchange="this.form.submit()">
-              <option>-</option>
-              <option>All</option>
-              <option>Payment</option>
-              <option>Receive</option>
-              <option>Recharge</option>
+              <option {% if transStatus == 'All'%} selected {% endif %}>All</option>
+              <option {% if transStatus == 'Payment'%} selected {% endif %}>Payment</option>
+              <option {% if transStatus == 'Receive'%} selected {% endif %}>Receive</option>
+              <option {% if transStatus == 'Recharge'%} selected {% endif %}>Recharge</option>
             </select>
           </div>
         </div>
@@ -570,7 +569,7 @@
                   </div>
                   <div class="modal-footer">
                     <p id="Warn" name="QuantityWarn" style="color:red"><small>  </small></p>
-                    <button type="button" id="calculate" class="btn btn-default" data-toggle="modal" data-target="#ordercheck" >Calculate the Price</button>
+                    <button type="button" id="calculate" class="btn btn-default" data-toggle="modal" data-target="#ordercheck" disabled="true">Calculate the Price</button>
                   </div>
                   <script type="text/javascript">
                     $('#calculate').click(function calculatePrice() {
