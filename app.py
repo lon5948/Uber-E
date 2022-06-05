@@ -195,6 +195,7 @@ def main():
         elif status == 'Cancel':
             cursor.execute("select oid,status,start,end,sid,total,subtotal,delivery_fee from orders where uid=%s and status=%s",(uid,'Cancel',))   
         tempList = cursor.fetchall()
+        print(tempList)
         orderList = []
         for temp in tempList:
             sid = temp[4]
@@ -202,6 +203,7 @@ def main():
             shopname = cursor.fetchone()[0]
             cursor.execute("select image, name, price, quantity from iteminorder where oid = %s", (temp[0], ))
             orderDetail = cursor.fetchall()
+            print(orderDetail)
             tup = (temp[0],temp[1],temp[2],temp[3],shopname,temp[5],orderDetail,temp[6],temp[7])
             orderList.append(tup)
         return orderList
@@ -532,36 +534,30 @@ def order():
     elif money < total:
         flash("Insufficient Balance",category='danger')
     else:
-        qList = []
-        for key,value in dic.items():
-            cursor.execute("select quantity from item where iid = %s", (key,))
-            fetch = cursor.fetchone()[0]
-            if fetch == '':
-                flash("Selected Item doesn't Exist",category='danger')
-                session['defaultPage'] = 'home'
-                return redirect(url_for('main'))
-            else:
-                qList.append(fetch)
         Time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         cursor.execute("insert into orders (status,start,distance,total,type,uid,sid,delivery_fee,subtotal) values ('Not finish',%s,%s,%s,%s,%s,%s,%s,%s)",(Time,distance,total,type,uid,sid,deliveryFee,subtotal))
         db.commit()
         cursor.execute("select oid from orders where start=%s and total=%s and type=%s and uid=%s and sid=%s and delivery_fee=%s and subtotal=%s",(Time,total,type,uid,sid,deliveryFee,subtotal))
+        print((Time,distance,total,type,uid,sid,deliveryFee,subtotal))
         oid = cursor.fetchone()[0]
-        count = 0
         for key,value in dic.items():
-            q = qList[count]
+            cursor.execute("select quantity from item where iid = %s", (key,))
+            q = cursor.fetchone()[0]
             q -= int(value[0])
-            count += 1
             cursor.execute("update item set quantity = %s where iid = %s", (q,key, ))
             db.commit()
-            cursor.execute("insert into iteminorder (oid,quantity,name,price,image) values (%s,%s,%s,%s,%s)",(oid,value[0],name,value[1],value[2],))
+            cursor.execute("insert into iteminorder (oid,iid,quantity,name,price,image) values (%s,%s,%s,%s,%s,%s)",(oid,key,value[0],name,value[1],value[2],))
             db.commit()
         money -= total
         walletShop += total
         cursor.execute("update user set wallet = %s where uid = %s", (money,uid ))
+        db.commit()
         cursor.execute("""insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)""",(uid, 'Payment', Time, shopName, str(-total)))
+        db.commit()
         cursor.execute("update user set wallet = %s where uid = %s", (walletShop,uidShop))
+        db.commit()
         cursor.execute("""insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)""",(uidShop, 'Receive', Time, name, '+'+str(total)))
+        db.commit()
         flash("Successfully Order",category='success')
     session['defaultPage'] = 'home'
     return redirect(url_for('main'))
@@ -660,6 +656,10 @@ def registerItem():
     pic = request.files['itemPic']
     if allowed_file(pic.filename) is False:
         flash('Incapable file', category='danger')
+        return redirect(url_for('main'))
+    cursor.execute("SELECT name FROM item WHERE name = %s", (itemName, ))
+    if len(cursor.fetchall()) > 0:
+        flash('Duplicated item name!', category='danger')
         return redirect(url_for('main'))
     picName = secure_filename(pic.filename)
     fileName = str(time.time_ns()) + '.' + picName.rsplit('.', 1)[-1].lower()
