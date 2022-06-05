@@ -82,13 +82,13 @@
                 <thead>
                   <tr>
                     <th scope="col">Order ID</th>
+                    <th scope="col">Select</th>
                     <th scope="col">Status</th>
                     <th scope="col">Start</th>
                     <th scope="col">End</th>
                     <th scope="col">Shop name</th>
                     <th scope="col">Total Price</th>
                     <th scope="col">Order Details</th>
-                    <th scope="col">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -141,9 +141,8 @@
                 <tbody>
                 {% for it in orders.6 %}
                 <tr>
-                  <td>HA</td>
                   <td>{{ loop.index }}</td>
-                  <td><img src="{{ url_for('static', filename='Picture/' + it.0) }}" width="100" height="100" alt="{{ it.3 }}}"></td>
+                  <td><img src="{{ url_for('static', filename='Picture/' + it.0) }}" width="100" height="100" alt="{{ it.3 }}"></td>
                   <td>{{ it.1 }}</td>
                   <td>{{ it.2 }}</td>
                   <td>{{ it.3 }}</td>
