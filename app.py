@@ -314,7 +314,6 @@ def addMoney():
             wallet += int(value)
             Time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
             cursor.execute(" update user set wallet = %s where uid = %s ", (wallet, uid, ))
-            db.commit()
             cursor.execute("insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)",(uid, 'Recharge', Time, info[0], '+'+value,))
             db.commit()
             flash(" Successfully Add Money! ", category='success')
@@ -550,7 +549,6 @@ def order():
                 qList.append(fetch)
         Time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         cursor.execute("insert into orders (status,start,distance,total,type,uid,sid,delivery_fee,subtotal) values ('Not finish',%s,%s,%s,%s,%s,%s,%s,%s)",(Time,distance,total,type,uid,sid,deliveryFee,subtotal))
-        db.commit()
         cursor.execute("select oid from orders where start=%s and total=%s and type=%s and uid=%s and sid=%s and delivery_fee=%s and subtotal=%s",(Time,total,type,uid,sid,deliveryFee,subtotal))
         oid = cursor.fetchone()[0]
         count = 0
@@ -560,7 +558,6 @@ def order():
             count += 1
             cursor.execute("update item set quantity = %s where iid = %s", (q,key, ))
             cursor.execute("insert into iteminorder (oid,quantity,name,price,image) values (%s,%s,%s,%s,%s)",(oid,value[0],value[3],value[1],value[2],))
-            db.commit()
         cursor.execute("update user set wallet = wallet - %s where uid = %s", (total,uid ))
         cursor.execute("""insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)""",(uid, 'Payment', Time, shopName, str(-total)))
         cursor.execute("update user set wallet =  wallet + %s where uid = %s", (total,uidShop))
@@ -785,6 +782,13 @@ def shopOrderCancel():
         INSERT INTO record (action, time, trader, amountChange, uid) VALUES ("Receive", %s, %s, %s, %s);
         """, [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"), sn, '{:+d}'.format(a[0]), a[1]) for a in refunds]
     )
+    cursor.execute("select sid from shop where uid=%s",(OwnerUid,))
+    sid = cursor.fetchone()[0]
+    for o in selected:
+        cursor.execute("select name,quantity from iteminorder where oid=%s",(o,))
+        itemList = cursor.fetchall()
+        for item in itemList:
+            cursor.execute("update item set quantity=quantity+%s where sid=%s and name=%s",(item[1],sid,item[0],))
     db.commit()
     flash('Order Cancelled!', category='success')
     return redirect(url_for('main'))
@@ -807,16 +811,23 @@ def cancelOrder():
     uid = session.get('uid')
     cursor.execute("select name from user where uid=%s",(uid,))
     name = cursor.fetchone()[0]
-    cursor.executemany(
-        """UPDATE orders SET status = 'Cancel', end = %s where oid = %s""",
-        [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"), _) for _ in selected]
-    )
+    
     cursor.execute(
         """SELECT total, shop.uid,shop.shopname from orders,shop where shop.sid=orders.sid and oid IN ({})""".format(','.join(selected))
     )
     refunds = cursor.fetchall()
-    print(refunds)
-    walletUID = [[a[0],a[1]] for a in refunds]
+    walletUID = [[a[0],a[1]] for a in refunds]\
+    #check shop
+    shopMoney = dict()
+    for w in walletUID:
+        shopUID = w[1]
+        if shopUID not in shopMoney:
+            cursor.execute("select wallet from user where uid=%s ",(shopUID,))
+            shopMoney[shopUID] = cursor.fetchone()[0]
+        shopMoney[shopUID] -= w[0]
+        if shopMoney[shopUID] < 0:
+            flash("Shopowner can't pay back right now. Please contact the shopowner", category='danger')
+            return redirect(url_for('main'))
     #update shop
     cursor.executemany(
         """
@@ -835,6 +846,19 @@ def cancelOrder():
     cursor.execute("update user set wallet = wallet+%s where uid = %s",(totalEarn,uid,))
     cursor.executemany("""insert into record (action, time, trader, amountChange, uid) values ("Receive",%s,%s,%s,%s);""",
     [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),a[2],'{:+d}'.format(a[0]), uid) for a in refunds])
+    #update order status
+    cursor.executemany(
+        """UPDATE orders SET status = 'Cancel', end = %s where oid = %s""",
+        [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"), _) for _ in selected]
+    )
+    #update item
+    for o in selected:
+        cursor.execute("select sid from orders where oid=%s",(o,))
+        sid = cursor.fetchone()[0]
+        cursor.execute("select name,quantity from iteminorder where oid=%s",(o,))
+        itemList = cursor.fetchall()
+        for item in itemList:
+            cursor.execute("update item set quantity=quantity+%s where sid=%s and name=%s",(item[1],sid,item[0],))
     db.commit()
     flash('Successfully Cancel!', category='success')
     return redirect(url_for('main'))
