@@ -554,18 +554,14 @@ def order():
             count += 1
             cursor.execute("update item set quantity = %s where iid = %s", (q,key, ))
             db.commit()
-            cursor.execute("insert into iteminorder (oid,iid,quantity,name,price,image) values (%s,%s,%s,%s,%s,%s)",(oid,key,value[0],name,value[1],value[2],))
+            cursor.execute("insert into iteminorder (oid,quantity,name,price,image) values (%s,%s,%s,%s,%s)",(oid,value[0],name,value[1],value[2],))
             db.commit()
         money -= total
         walletShop += total
         cursor.execute("update user set wallet = %s where uid = %s", (money,uid ))
-        db.commit()
         cursor.execute("""insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)""",(uid, 'Payment', Time, shopName, str(-total)))
-        db.commit()
         cursor.execute("update user set wallet = %s where uid = %s", (walletShop,uidShop))
-        db.commit()
         cursor.execute("""insert into record (uid, action, time, trader, amountChange) values (%s, %s, %s, %s, %s)""",(uidShop, 'Receive', Time, name, '+'+str(total)))
-        db.commit()
         flash("Successfully Order",category='success')
     session['defaultPage'] = 'home'
     return redirect(url_for('main'))
