@@ -471,6 +471,7 @@ def calculatePrice():
         else:
             deliveryFee = round((distance/1000)*10)
     else:
+        session['distance'] = 0
         deliveryFee = 0
     cursor.execute("""select image,name,price,quantity from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
