@@ -519,15 +519,19 @@ def order():
     error = ''
     errorList = list()
     dic = dict()
+    newTotal = 0
     for i,item in enumerate(itemList):
         num = request.form.get('a'+str(i+1))
         if num != '':
             dic[item[2]] = [num,item[3],item[4],item[1]]
+            newTotal += int(num)*item[3]
         else:
             num = 0
         if int(num) > int(item[0]):
             errorList.append(item[1])
-    if len(errorList) != 0:
+    if newTotal != total:
+        flash("Shop has changed the price.",category='danger')
+    elif len(errorList) != 0:
         error = "Order Quantity > Shop Quantity  --> "
         for e in errorList:
             error +=  e + ' | '
