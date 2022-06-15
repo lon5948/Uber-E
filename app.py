@@ -510,8 +510,6 @@ def order():
     info = cursor.fetchone()
     shopName = info[0]
     uidShop = info[1]
-    cursor.execute("""select wallet from user where uid=%s """, (uidShop,))
-    walletShop = cursor.fetchone()[0]
     cursor.execute("""select quantity,name,iid,price,image from item where sid=%s """, (sid,))
     itemList = cursor.fetchall()
     money = session['money']
