@@ -772,7 +772,7 @@ def shopOrderCancel():
     cursor.executemany(
         """
         INSERT INTO record (action, time, trader, amountChange, uid) VALUES ("Payment", %s, %s, %s, %s);
-    """, [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"), a[2], '{:+d}'.format(-a[0]), a[1]) for a in refunds]
+    """, [(datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"), a[2], '{:+d}'.format(-a[0]), OwnerUid) for a in refunds]
     )
     walletUID = [[refund[0],refund[1]] for refund in refunds]
     cursor.executemany(
