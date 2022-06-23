@@ -38,9 +38,6 @@ def hello():
         session.pop('uid')
     return render_template('index.html')
 
-# index
-
-
 @app.route('/validateUser', methods=['POST'])
 def validateUser():
     Account = request.form.get('Account')
@@ -529,9 +526,7 @@ def order():
             num = 0
         if int(num) > int(item[0]):
             errorList.append(item[1])
-    if newTotal != total:
-        flash("Shop has changed the price.",category='danger')
-    elif len(errorList) != 0:
+    if len(errorList) != 0:
         error = "Order Quantity > Shop Quantity  --> "
         for e in errorList:
             error +=  e + ' | '
@@ -539,6 +534,8 @@ def order():
         flash(error,category='danger')
     elif money < total:
         flash("Insufficient Balance",category='danger')
+    elif newTotal+deliveryFee != total:
+        flash("Shop has changed the price.",category='danger')
     else:
         qList = []
         for key,value in dic.items():
